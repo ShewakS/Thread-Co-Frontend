@@ -134,8 +134,7 @@ export const StoreProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState(() => loadLocal(KEYS.wishlist, []));
   const [offers, setOffers] = useState([]);
 
-  const API_URL = 'http://localhost:5000/api';
-
+  const API_URL = "https://thread-co-backend.onrender.com";
   // Fetch initial data from backend on mount
   useEffect(() => {
     const fetchData = async () => {
