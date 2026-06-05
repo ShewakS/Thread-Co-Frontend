@@ -17,34 +17,6 @@ const KEYS = {
   offers: 'threadco_offers'
 };
 
-const DEFAULT_PRODUCTS = [
-  { id: 'p1', name: 'Classic Linen Shirt', category: 'Men', price: 1299, image: 'images/lenin%20shirt.jpg', rating: 4.5 },
-  { id: 'p2', name: 'Cotton Cargo Shorts', category: 'Men', price: 1499, image: 'images/Cotton%20Cargo%20Shorts.jpg', rating: 4.0 },
-  { id: 'p3', name: 'Relaxed Beige Blazer', category: 'Women', price: 2399, image: 'images/Relaxed%20Beige%20Blazer.jpg', rating: 4.5 },
-  { id: 'p4', name: 'Soft Knit Co-ord Set', category: 'Women', price: 2699, image: 'images/Soft%20Knit%20Co-ord%20Set.webp', rating: 5.0 },
-  { id: 'p5', name: 'Coastal Straw Hat', category: 'Accessories', price: 899, image: 'images/Hat.webp', rating: 3.5 },
-  { id: 'p6', name: 'Minimal Leather Belt', category: 'Accessories', price: 699, image: 'images/Minimal%20Leather%20Belt.webp', rating: 4.0 },
-  { id: 'p7', name: 'Daily Denim Jacket', category: 'Men', price: 1999, image: 'images/Daily%20Denim%20Jacket.jpg', rating: 4.5 },
-  { id: 'p8', name: 'Flow Midi Dress', category: 'Women', price: 2199, image: 'images/Flow%20Midi%20Dress.webp', rating: 4.5 },
-  { id: 'p9', name: 'Kids Cotton Tee', category: 'Kids', price: 799, image: 'images/download.webp', rating: 4.0 },
-  { id: 'p10', name: 'Kids Casual Set', category: 'Kids', price: 1299, image: 'images/adv1.jpg', rating: 4.5 },
-  { id: 'p11', name: "Men's Shirts Collection", category: 'Men', price: 1799, image: 'images/men%20shirts.jpg', rating: 4.0 },
-  { id: 'p12', name: "Women's Dress", category: 'Women', price: 1999, image: 'images/women%20dress.avif', rating: 4.5 }
-];
-
-const DEFAULT_ORDERS = [
-  { id: 'ORD-3001', customer: 'Aarav', total: 2498, status: 'Pending', date: '2026-05-28', address: '123 Park Street, Kolkata', paymentMethod: 'Cash on Delivery', items: [{ id: 'p1', name: 'Classic Linen Shirt', price: 1299, quantity: 1 }, { id: 'p8', name: 'Flow Midi Dress', price: 2199, quantity: 1 }] },
-  { id: 'ORD-3002', customer: 'Mira', total: 1299, status: 'Delivered', date: '2026-05-29', address: '456 MG Road, Bangalore', paymentMethod: 'Card', items: [{ id: 'p1', name: 'Classic Linen Shirt', price: 1299, quantity: 1 }] },
-  { id: 'ORD-3003', customer: 'Kabir', total: 3598, status: 'Pending', date: '2026-05-30', address: '789 Link Road, Mumbai', paymentMethod: 'UPI', items: [{ id: 'p3', name: 'Relaxed Beige Blazer', price: 2399, quantity: 1 }, { id: 'p10', name: 'Kids Casual Set', price: 1299, quantity: 1 }] },
-  { id: 'ORD-3004', customer: 'Riya', total: 899, status: 'Shipped', date: '2026-06-01', address: '101 Ring Road, Delhi', paymentMethod: 'Cash on Delivery', items: [{ id: 'p5', name: 'Coastal Straw Hat', price: 899, quantity: 1 }] }
-];
-
-const DEFAULT_OFFERS = [
-  { code: 'SAVE10', discount: 10, startDate: '2026-06-01', endDate: '2026-06-30', status: 'Active' },
-  { code: 'FREESHIP', discount: 0, startDate: '2026-06-01', endDate: '2026-06-30', status: 'Active' },
-  { code: 'SUMMER20', discount: 20, startDate: '2026-06-01', endDate: '2026-08-31', status: 'Active' }
-];
-
 const REGEX = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   name: /^[A-Za-z][A-Za-z\s.'-]{0,49}$/,
@@ -216,7 +188,7 @@ export const StoreProvider = ({ children }) => {
       if (currentUser.cart) setCart(normalizeCart(currentUser.cart));
       if (currentUser.wishlist) setWishlist(currentUser.wishlist);
     }
-  }, [currentUser?.email]);
+  }, [currentUser, currentUser?.email]);
 
   // Sync cart & wishlist to database when they change locally
   useEffect(() => {
@@ -241,7 +213,7 @@ export const StoreProvider = ({ children }) => {
       const updatedUser = { ...currentUser, cart, wishlist };
       saveLocal(KEYS.currentUser, updatedUser);
     }
-  }, [cart, wishlist, currentUser?.email]);
+  }, [cart, wishlist, currentUser, currentUser?.email]);
 
   // Persistent States Session/Local Sync
   useEffect(() => saveLocal(KEYS.currentUser, currentUser), [currentUser]);

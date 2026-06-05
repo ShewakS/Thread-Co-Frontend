@@ -23,7 +23,7 @@ const SignupPage = () => {
   });
   const [notice, setNotice] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // eslint-disable-line no-unused-vars
 
   const onChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
