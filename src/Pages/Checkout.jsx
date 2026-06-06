@@ -21,6 +21,9 @@ const Checkout = () => {
     shippingAmount,
     orderTotal,
     placeOrder,
+    createPaymentOrder,
+    verifyPayment,
+    currentUser,
     offers
   } = useStore();
 
@@ -40,9 +43,8 @@ const Checkout = () => {
   const [couponNotice, setCouponNotice] = useState(null);
 
   // Payment state
-  const [paymentMethod, setPaymentMethod] = useState('cod'); // cod, upi, card
-  const [cardForm, setCardForm] = useState({ number: '', expiry: '', cvv: '' });
-  const [upiId, setUpiId] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [isPaying, setIsPaying] = useState(false);
 
   // Validation errors
   const [notice, setNotice] = useState(null);
@@ -67,39 +69,150 @@ const Checkout = () => {
     }
   };
 
-  const handlePlaceOrder = (e) => {
-    e.preventDefault();
+  const loadRazorpayScript = () => new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+
+  const validateAddress = () => {
     setNotice(null);
 
-    // Validate Address
-    if (!addressForm.fullName.trim()) return setNotice({ type: 'error', text: 'Full Name is required.' });
-    if (!addressForm.phone.trim() || addressForm.phone.length < 10) return setNotice({ type: 'error', text: 'Please enter a valid 10-digit Phone Number.' });
-    if (!addressForm.streetAddress.trim()) return setNotice({ type: 'error', text: 'Street Address is required.' });
-    if (!addressForm.city.trim()) return setNotice({ type: 'error', text: 'City is required.' });
-    if (!addressForm.state.trim()) return setNotice({ type: 'error', text: 'State is required.' });
-    if (!addressForm.zip.trim() || !/^\d{6}$/.test(addressForm.zip.trim())) return setNotice({ type: 'error', text: 'Please enter a valid 6-digit Zip/Pin Code.' });
-
-    // Validate Payment
-    if (paymentMethod === 'card') {
-      if (!cardForm.number || !cardForm.expiry || !cardForm.cvv) {
-        return setNotice({ type: 'error', text: 'Please complete the card payment details.' });
-      }
-    } else if (paymentMethod === 'upi') {
-      if (!upiId.trim() || !upiId.includes('@')) {
-        return setNotice({ type: 'error', text: 'Please enter a valid UPI ID (e.g. name@upi).' });
-      }
+    if (!addressForm.fullName.trim()) {
+      setNotice({ type: 'error', text: 'Full Name is required.' });
+      return null;
+    }
+    if (!addressForm.phone.trim() || addressForm.phone.length < 10) {
+      setNotice({ type: 'error', text: 'Please enter a valid 10-digit Phone Number.' });
+      return null;
+    }
+    if (!addressForm.streetAddress.trim()) {
+      setNotice({ type: 'error', text: 'Street Address is required.' });
+      return null;
+    }
+    if (!addressForm.city.trim()) {
+      setNotice({ type: 'error', text: 'City is required.' });
+      return null;
+    }
+    if (!addressForm.state.trim()) {
+      setNotice({ type: 'error', text: 'State is required.' });
+      return null;
+    }
+    if (!addressForm.zip.trim() || !/^\d{6}$/.test(addressForm.zip.trim())) {
+      setNotice({ type: 'error', text: 'Please enter a valid 6-digit Zip/Pin Code.' });
+      return null;
     }
 
-    const fullAddress = `${addressForm.streetAddress}, ${addressForm.city}, ${addressForm.state} - ${addressForm.zip}`;
-    const friendlyPayment = paymentMethod === 'cod' ? 'Cash on Delivery' : paymentMethod === 'upi' ? `UPI (${upiId})` : 'Card Payment';
+    return `${addressForm.streetAddress}, ${addressForm.city}, ${addressForm.state} - ${addressForm.zip}`;
+  };
 
-    // Place Order
-    const newOrderId = placeOrder(fullAddress, friendlyPayment);
+  const placeCodOrder = async (fullAddress) => {
+    const newOrderId = await placeOrder(fullAddress, 'Cash on Delivery', {
+      paymentStatus: 'Pending'
+    });
     if (newOrderId) {
       navigate('/order-success', { state: { orderId: newOrderId, total: orderTotal } });
     } else {
       setNotice({ type: 'error', text: 'Your bag is empty.' });
     }
+  };
+
+  const startRazorpayPayment = async (fullAddress) => {
+    setIsPaying(true);
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      setIsPaying(false);
+      setNotice({ type: 'error', text: 'Unable to load Razorpay checkout. Please try again.' });
+      return;
+    }
+
+    const paymentOrder = await createPaymentOrder({
+      customer: addressForm.fullName,
+      email: currentUser?.email,
+      phone: addressForm.phone
+    });
+
+    if (!paymentOrder.ok) {
+      setIsPaying(false);
+      setNotice({ type: 'error', text: paymentOrder.message });
+      return;
+    }
+
+    const { key, paymentId, order } = paymentOrder.data;
+    const razorpay = new window.Razorpay({
+      key,
+      amount: order.amount,
+      currency: order.currency,
+      name: 'THREAD & CO',
+      description: 'Order payment',
+      order_id: order.id,
+      prefill: {
+        name: addressForm.fullName,
+        email: currentUser?.email || '',
+        contact: addressForm.phone
+      },
+      notes: {
+        address: fullAddress
+      },
+      theme: {
+        color: '#111111'
+      },
+      handler: async (response) => {
+        const verified = await verifyPayment({
+          paymentId,
+          ...response
+        });
+
+        if (!verified.ok) {
+          setIsPaying(false);
+          setNotice({ type: 'error', text: verified.message });
+          return;
+        }
+
+        const newOrderId = await placeOrder(fullAddress, 'Razorpay', {
+          paymentId,
+          paymentStatus: 'Paid',
+          razorpayPaymentId: response.razorpay_payment_id
+        });
+
+        setIsPaying(false);
+        if (newOrderId) {
+          navigate('/order-success', {
+            state: {
+              orderId: newOrderId,
+              total: orderTotal,
+              paymentId: response.razorpay_payment_id
+            }
+          });
+        } else {
+          setNotice({ type: 'error', text: 'Payment succeeded, but order creation failed. Please contact support.' });
+        }
+      },
+      modal: {
+        ondismiss: () => {
+          setIsPaying(false);
+        }
+      }
+    });
+
+    razorpay.open();
+  };
+
+  const handlePlaceOrder = async (e) => {
+    e.preventDefault();
+    const fullAddress = validateAddress();
+    if (!fullAddress) return;
+
+    if (paymentMethod === 'cod') {
+      await placeCodOrder(fullAddress);
+      return;
+    }
+
+    await startRazorpayPayment(fullAddress);
   };
 
   if (cart.length === 0) {
@@ -206,9 +319,8 @@ const Checkout = () => {
               </h3>
               <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                 {[
-                  { id: 'cod', label: 'Cash on Delivery', icon: <LocalShippingIcon /> },
-                  { id: 'upi', label: 'UPI / QR Scan', icon: <AccountBalanceWalletIcon /> },
-                  { id: 'card', label: 'Card Payment', icon: <CreditCardIcon /> }
+                  { id: 'razorpay', label: 'Razorpay', icon: <AccountBalanceWalletIcon /> },
+                  { id: 'cod', label: 'Cash on Delivery', icon: <LocalShippingIcon /> }
                 ].map(opt => (
                   <button
                     key={opt.id}
@@ -245,49 +357,11 @@ const Checkout = () => {
                 </div>
               )}
 
-              {paymentMethod === 'upi' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <TextField
-                    label="Enter UPI ID"
-                    placeholder="username@upi"
-                    value={upiId}
-                    onChange={e => setUpiId(e.target.value)}
-                    fullWidth
-                    required
-                  />
-                  <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--text-muted)' }}>
-                    A payment request will be sent to your UPI app. Please approve it within 5 minutes.
+              {paymentMethod === 'razorpay' && (
+                <div style={{ padding: '1rem', background: 'var(--bg-muted)', borderRadius: '10px', border: '1px solid var(--border)' }}>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                    Pay securely with Razorpay using UPI, cards, netbanking, or wallets. You will be redirected to the Razorpay checkout window.
                   </p>
-                </div>
-              )}
-
-              {paymentMethod === 'card' && (
-                <div className="form-grid" style={{ gap: '1rem' }}>
-                  <TextField
-                    label="Card Number"
-                    placeholder="16-digit card number"
-                    value={cardForm.number}
-                    onChange={e => setCardForm(prev => ({ ...prev, number: e.target.value }))}
-                    fullWidth
-                    required
-                  />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <TextField
-                      label="Expiry Date"
-                      placeholder="MM/YY"
-                      value={cardForm.expiry}
-                      onChange={e => setCardForm(prev => ({ ...prev, expiry: e.target.value }))}
-                      required
-                    />
-                    <TextField
-                      label="CVV"
-                      placeholder="3 digits"
-                      type="password"
-                      value={cardForm.cvv}
-                      onChange={e => setCardForm(prev => ({ ...prev, cvv: e.target.value }))}
-                      required
-                    />
-                  </div>
                 </div>
               )}
             </article>
@@ -386,10 +460,11 @@ const Checkout = () => {
                 color="secondary"
                 variant="contained"
                 onClick={handlePlaceOrder}
+                disabled={isPaying}
                 className="btn btn-block"
                 style={{ marginTop: '1.5rem', padding: '0.8rem 1rem', fontSize: '0.94rem', borderRadius: '12px' }}
               >
-                Confirm & Place Order
+                {isPaying ? 'Opening Payment...' : paymentMethod === 'cod' ? 'Confirm COD Order' : 'Go to Payment'}
               </Button>
             </article>
           </div>

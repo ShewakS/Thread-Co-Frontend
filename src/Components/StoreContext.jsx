@@ -24,7 +24,7 @@ const REGEX = {
   subject: /^[A-Za-z0-9][A-Za-z0-9\s.,'"()-]{2,99}$/,
   password: /^(?=.*[A-Za-z])(?=.*\d).{6,}$/,
   promo: /^[A-Z0-9]{4,12}$/i,
-  image: /^(https?:\/\/|\/|\.?.?\/|images\/).+/i
+  image: /^(https?:\/\/|data:image\/|\/|\.?.?\/|images\/).+/i
 };
 
 const StoreContext = createContext(null);
@@ -174,6 +174,12 @@ export const StoreProvider = ({ children }) => {
 
       try {
         if (authToken) {
+          const wishlistRes = await apiFetch('/wishlist');
+          if (wishlistRes.ok) {
+            const wishlistData = await wishlistRes.json();
+            setWishlist(wishlistData);
+          }
+
           const ordersRes = await apiFetch('/orders');
           if (ordersRes.ok) {
             const ordersData = await ordersRes.json();
@@ -228,6 +234,10 @@ export const StoreProvider = ({ children }) => {
               cart,
               wishlist
             })
+          });
+          await apiFetch('/wishlist', {
+            method: 'PUT',
+            body: JSON.stringify({ items: wishlist })
           });
         } catch (err) {
           console.error("Error syncing cart/wishlist to DB:", err);
@@ -315,7 +325,39 @@ export const StoreProvider = ({ children }) => {
     setPromoCode('');
   };
 
-  const placeOrder = async (deliveryAddress, paymentMethod) => {
+  const createPaymentOrder = useCallback(async (notes = {}) => {
+    try {
+      const res = await apiFetch('/payments/create-order', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: orderTotal,
+          currency: 'INR',
+          notes
+        })
+      });
+      const data = await res.json();
+      if (res.ok) return { ok: true, data };
+      return { ok: false, message: data.message || 'Unable to start payment.' };
+    } catch (err) {
+      return { ok: false, message: 'Error connecting to payment server.' };
+    }
+  }, [apiFetch, orderTotal]);
+
+  const verifyPayment = useCallback(async (payload) => {
+    try {
+      const res = await apiFetch('/payments/verify', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (res.ok) return { ok: true, data };
+      return { ok: false, message: data.message || 'Payment verification failed.' };
+    } catch (err) {
+      return { ok: false, message: 'Error verifying payment.' };
+    }
+  }, [apiFetch]);
+
+  const placeOrder = async (deliveryAddress, paymentMethod, paymentDetails = {}) => {
     if (!cart.length) return null;
     
     try {
@@ -325,6 +367,9 @@ export const StoreProvider = ({ children }) => {
         total: orderTotal,
         address: deliveryAddress || 'No Address Provided',
         paymentMethod: paymentMethod || 'Cash on Delivery',
+        paymentId: paymentDetails.paymentId || null,
+        paymentStatus: paymentDetails.paymentStatus || (paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Paid'),
+        razorpayPaymentId: paymentDetails.razorpayPaymentId || '',
         items: cart.map(item => ({
           id: item.id,
           name: item.name,
@@ -371,16 +416,61 @@ export const StoreProvider = ({ children }) => {
   };
 
   // Wishlist actions
-  const addToWishlist = (product) => {
+  const addToWishlist = async (product) => {
     setWishlist((prev) => {
       if (prev.some((item) => String(item.id) === String(product.id))) return prev;
       return [...prev, product];
     });
+
+    if (authToken) {
+      try {
+        await apiFetch('/wishlist', {
+          method: 'POST',
+          body: JSON.stringify(product)
+        });
+      } catch (err) {
+        console.error("Error adding wishlist item:", err);
+      }
+    }
   };
 
-  const removeFromWishlist = (productId) => {
+  const removeFromWishlist = async (productId) => {
     setWishlist((prev) => prev.filter((item) => String(item.id) !== String(productId)));
+
+    if (authToken) {
+      try {
+        await apiFetch(`/wishlist/${productId}`, {
+          method: 'DELETE'
+        });
+      } catch (err) {
+        console.error("Error removing wishlist item:", err);
+      }
+    }
   };
+
+  const fetchReviews = useCallback(async (productId) => {
+    try {
+      const res = await apiFetch(`/reviews/${productId}`);
+      if (res.ok) return await res.json();
+    } catch (err) {
+      console.error("Error fetching reviews:", err);
+    }
+    return [];
+  }, [apiFetch]);
+
+  const addReview = useCallback(async (productId, review) => {
+    try {
+      const res = await apiFetch(`/reviews/${productId}`, {
+        method: 'POST',
+        body: JSON.stringify(review)
+      });
+      const savedReview = await res.json();
+      if (res.ok) return { ok: true, review: savedReview };
+      return { ok: false, message: savedReview.message || 'Unable to save review.' };
+    } catch (err) {
+      return { ok: false, message: 'Error connecting to server.' };
+    }
+  }, [apiFetch]);
 
   const moveToCart = (product, selectedSize = 'M', selectedColor = 'Standard') => {
     addToCart(product, selectedSize, selectedColor, 1);
@@ -560,9 +650,12 @@ export const StoreProvider = ({ children }) => {
       const savedProduct = await res.json();
       if (res.ok) {
         setProducts((prev) => [...prev, savedProduct]);
+        return { ok: true, product: savedProduct };
       }
+      return { ok: false, message: savedProduct.message || 'Unable to add product.' };
     } catch (err) {
       console.error("Error adding product:", err);
+      return { ok: false, message: 'Error connecting to server.' };
     }
   };
 
@@ -620,6 +713,8 @@ export const StoreProvider = ({ children }) => {
     removeCartItem,
     clearCart,
     placeOrder,
+    createPaymentOrder,
+    verifyPayment,
     updateOrderStatus,
     setShippingMethod,
     setPromoCode,
@@ -636,6 +731,8 @@ export const StoreProvider = ({ children }) => {
     addToWishlist,
     removeFromWishlist,
     moveToCart,
+    fetchReviews,
+    addReview,
     updateUserProfile,
     addOffer,
     deleteOffer,

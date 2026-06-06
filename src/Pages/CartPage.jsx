@@ -1,7 +1,6 @@
 import Button from '@mui/material/Button';
-import Alert from '@mui/material/Alert';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useStore, formatMoney, validators } from '../Components/StoreContext';
 import { resolveImage } from '../Components/imageMap';
 
@@ -15,13 +14,12 @@ const CartPage = () => {
     promoState,
     removeCartItem,
     clearCart,
-    placeOrder,
     setPromoCode,
     setShippingMethod
   } = useStore();
 
   const [promoInput, setPromoInput] = useState(promoCode);
-  const [notice, setNotice] = useState(null);
+  const navigate = useNavigate();
 
   const itemCount = cart.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
 
@@ -30,10 +28,9 @@ const CartPage = () => {
     setPromoCode(String(promoInput || '').trim().toUpperCase());
   };
 
-  const checkout = async () => {
+  const checkout = () => {
     if (!cart.length) return;
-    const orderId = await placeOrder();
-    if (orderId) setNotice('Order placed successfully.');
+    navigate('/checkout');
   };
 
   return (
@@ -134,13 +131,12 @@ const CartPage = () => {
               <strong>{formatMoney(orderTotal)}</strong>
             </div>
 
-            <Button color="secondary" variant="contained" className="btn btn-block" onClick={checkout}>Register</Button>
+            <Button color="secondary" variant="contained" className="btn btn-block" onClick={checkout}>Go to Payment</Button>
             <Button color="secondary" variant="outlined" className="btn btn-block" onClick={clearCart}>Clear Cart</Button>
 
             <p className="order-note muted small">
               Orders typically ship within 2 business days. Free shipping for orders over ₹1000.
             </p>
-            {notice ? <Alert severity="success">{notice}</Alert> : null}
           </aside>
         </div>
       </section>

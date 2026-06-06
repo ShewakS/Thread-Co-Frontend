@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -14,7 +14,7 @@ import ProductCard from '../Components/ProductCard';
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { products, addToCart, addToWishlist, wishlist, removeFromWishlist } = useStore();
+  const { products, addToCart, addToWishlist, wishlist, removeFromWishlist, currentUser, fetchReviews, addReview } = useStore();
   
   // Find product
   const product = useMemo(() => {
@@ -22,11 +22,13 @@ const ProductDetails = () => {
   }, [products, id]);
 
   const isWishlisted = useMemo(() => {
+    if (!product) return false;
     return wishlist.some(item => String(item.id) === String(product.id));
   }, [wishlist, product]);
 
   // Gallery images (mocked since we have 1 image per product, we generate variations)
   const galleryImages = useMemo(() => {
+    if (!product) return [];
     return [
       product.image,
       product.image, // we reuse the same image as variation
@@ -35,7 +37,7 @@ const ProductDetails = () => {
     ];
   }, [product]);
 
-  const [activeImage, setActiveImage] = useState(product.image);
+  const [activeImage, setActiveImage] = useState(product?.image || '');
   const [selectedSize, setSelectedSize] = useState('M');
   const [selectedColor, setSelectedColor] = useState('Classic Beige');
   const [quantity, setQuantity] = useState(1);
@@ -46,10 +48,19 @@ const ProductDetails = () => {
   const [reviewName, setReviewName] = useState('');
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
-  const [reviews, setReviews] = useState([
-    { id: 1, name: 'Ananya S.', rating: 5, date: '2026-05-15', text: 'Absolutely love the fabric! It is so soft and comfortable. Perfect fit!' },
-    { id: 2, name: 'Rohan M.', rating: 4, date: '2026-05-20', text: 'Great design. Color is slightly darker than the picture but looks very premium.' }
-  ]);
+  const [reviews, setReviews] = useState([]);
+
+  useEffect(() => {
+    if (!product?.id) return;
+    setActiveImage(product.image);
+
+    const loadReviews = async () => {
+      const savedReviews = await fetchReviews(product.id);
+      setReviews(savedReviews);
+    };
+
+    loadReviews();
+  }, [fetchReviews, product?.id, product?.image]);
 
   if (!product) {
     return (
@@ -81,20 +92,31 @@ const ProductDetails = () => {
     setTimeout(() => setNotice(null), 3000);
   };
 
-  const handleAddReview = (e) => {
+  const handleAddReview = async (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      setNotice({ type: 'error', text: 'Please login to submit a review.' });
+      return;
+    }
     if (!reviewName || !reviewText) return;
-    const newRev = {
-      id: Date.now(),
+
+    const result = await addReview(product.id, {
       name: reviewName,
       rating: reviewRating,
-      date: new Date().toISOString().split('T')[0],
       text: reviewText
-    };
-    setReviews([newRev, ...reviews]);
+    });
+
+    if (!result.ok) {
+      setNotice({ type: 'error', text: result.message });
+      return;
+    }
+
+    setReviews([result.review, ...reviews]);
     setReviewName('');
     setReviewText('');
     setReviewRating(5);
+    setNotice({ type: 'success', text: 'Review submitted successfully.' });
+    setTimeout(() => setNotice(null), 3000);
   };
 
   return (
@@ -340,7 +362,7 @@ const ProductDetails = () => {
                 <div key={rev.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.2rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 700 }}>{rev.name}</span>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{rev.date}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(rev.createdAt || rev.date).toLocaleDateString('en-IN')}</span>
                   </div>
                   <Rating value={rev.rating} readOnly size="small" style={{ marginBottom: '0.5rem' }} />
                   <p style={{ margin: 0, fontSize: '0.92rem', color: 'var(--text-muted)' }}>{rev.text}</p>
@@ -358,7 +380,7 @@ const ProductDetails = () => {
                     type="text" 
                     value={reviewName} 
                     onChange={e => setReviewName(e.target.value)} 
-                    placeholder="Enter your name" 
+                    placeholder={currentUser ? `${currentUser.firstname} ${currentUser.lastname}` : 'Enter your name'} 
                     required 
                   />
                 </div>

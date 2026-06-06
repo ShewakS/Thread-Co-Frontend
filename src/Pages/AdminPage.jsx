@@ -3,6 +3,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useStore, validators, formatMoney } from '../Components/StoreContext';
 import { resolveImage } from '../Components/imageMap';
 
@@ -38,18 +39,46 @@ const AdminPage = () => {
     setLoginNotice({ type: result.ok ? 'success' : 'error', text: result.message });
   };
 
-  const submitProduct = (event) => {
+  const submitProduct = async (event) => {
     event.preventDefault();
     setAddNotice(null);
 
     if (!validators.isValidName(addForm.name)) return setAddNotice({ type: 'error', text: 'Enter a valid product name.' });
     if (!addForm.category) return setAddNotice({ type: 'error', text: 'Select a category.' });
     if (!/^[1-9]\d*$/.test(addForm.price)) return setAddNotice({ type: 'error', text: 'Enter a valid price.' });
-    if (!validators.isValidImage(addForm.image)) return setAddNotice({ type: 'error', text: 'Enter a valid image path or URL.' });
+    if (!validators.isValidImage(addForm.image)) return setAddNotice({ type: 'error', text: 'Import a product image from your device.' });
 
-    addProduct(addForm);
+    const result = await addProduct(addForm);
+    if (!result.ok) return setAddNotice({ type: 'error', text: result.message });
+
     setAddForm({ name: '', category: '', price: '', image: '' });
     setAddNotice({ type: 'success', text: 'Product added successfully.' });
+  };
+
+  const handleImageImport = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setAddNotice({ type: 'error', text: 'Please import a valid image file.' });
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setAddNotice({ type: 'error', text: 'Please choose an image smaller than 2MB.' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAddForm((prev) => ({ ...prev, image: reader.result }));
+      setAddNotice({ type: 'success', text: 'Image imported successfully.' });
+    };
+    reader.onerror = () => {
+      setAddNotice({ type: 'error', text: 'Unable to import this image.' });
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
   };
 
   return (
@@ -149,12 +178,28 @@ const AdminPage = () => {
                   value={addForm.price}
                   onChange={(event) => setAddForm((prev) => ({ ...prev, price: event.target.value }))}
                 />
-                <TextField
-                  label="Image URL"
-                  value={addForm.image}
-                  onChange={(event) => setAddForm((prev) => ({ ...prev, image: event.target.value }))}
-                  placeholder="images/lenin shirt.jpg"
-                />
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Button
+                    color="secondary"
+                    variant="outlined"
+                    component="label"
+                    startIcon={<UploadFileIcon />}
+                    style={{ borderRadius: '10px', textTransform: 'none' }}
+                  >
+                    Import from Device
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handleImageImport}
+                    />
+                  </Button>
+                  {addForm.image ? (
+                    <div style={{ width: '52px', height: '64px', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border)', background: '#fff' }}>
+                      <img src={resolveImage(addForm.image)} alt="Product preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  ) : null}
+                </div>
                 <Button color="secondary" variant="contained" className="btn" type="submit">Add Product</Button>
                 {addNotice ? <Alert severity={addNotice.type}>{addNotice.text}</Alert> : null}
               </form>
