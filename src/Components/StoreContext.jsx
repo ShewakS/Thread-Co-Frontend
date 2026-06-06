@@ -1,8 +1,9 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 const KEYS = {
   users: 'threadco_users',
   currentUser: 'threadco_current_user',
+  authToken: 'threadco_auth_token',
   adminSession: 'threadco_admin_session',
   cart: 'threadco_cart',
   cartSync: 'threadco_cart_sync',
@@ -120,6 +121,7 @@ export const getShippingState = (subtotal, method) => {
 export const StoreProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(() => loadLocal(KEYS.currentUser, null));
+  const [authToken, setAuthToken] = useState(() => loadLocal(KEYS.authToken, ''));
   const [adminSession, setAdminSession] = useState(() => loadLocal(KEYS.adminSession, false) === true);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -135,11 +137,23 @@ export const StoreProvider = ({ children }) => {
   const [offers, setOffers] = useState([]);
 
   const API_URL = process.env.REACT_APP_API_URL || "https://thread-co-backend.onrender.com/api";
+  const apiFetch = useCallback((path, options = {}) => {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      ...(options.headers || {})
+    };
+
+    return fetch(`${API_URL}${path}`, {
+      ...options,
+      headers
+    });
+  }, [API_URL, authToken]);
   // Fetch initial data from backend on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productsRes = await fetch(`${API_URL}/products`);
+        const productsRes = await apiFetch('/products');
         if (productsRes.ok) {
           const productsData = await productsRes.json();
           setProducts(productsData);
@@ -149,7 +163,7 @@ export const StoreProvider = ({ children }) => {
       }
 
       try {
-        const offersRes = await fetch(`${API_URL}/offers`);
+        const offersRes = await apiFetch('/offers');
         if (offersRes.ok) {
           const offersData = await offersRes.json();
           setOffers(offersData);
@@ -159,27 +173,31 @@ export const StoreProvider = ({ children }) => {
       }
 
       try {
-        const ordersRes = await fetch(`${API_URL}/orders`);
-        if (ordersRes.ok) {
-          const ordersData = await ordersRes.json();
-          setOrders(ordersData);
+        if (authToken) {
+          const ordersRes = await apiFetch('/orders');
+          if (ordersRes.ok) {
+            const ordersData = await ordersRes.json();
+            setOrders(ordersData);
+          }
         }
       } catch (err) {
         console.error("Error fetching orders:", err);
       }
 
       try {
-        const usersRes = await fetch(`${API_URL}/user/list`);
-        if (usersRes.ok) {
-          const usersData = await usersRes.json();
-          setUsers(usersData);
+        if (authToken && currentUser?.role === 'admin') {
+          const usersRes = await apiFetch('/user/list');
+          if (usersRes.ok) {
+            const usersData = await usersRes.json();
+            setUsers(usersData);
+          }
         }
       } catch (err) {
         console.error("Error fetching users:", err);
       }
     };
     fetchData();
-  }, []);
+  }, [apiFetch, authToken, currentUser?.role]);
 
   // Update cart & wishlist on login / user change
   useEffect(() => {
@@ -189,14 +207,22 @@ export const StoreProvider = ({ children }) => {
     }
   }, [currentUser, currentUser?.email]);
 
+  useEffect(() => {
+    if (currentUser && !authToken) {
+      setCurrentUser(null);
+      setAdminSession(false);
+      setCart([]);
+      setWishlist([]);
+    }
+  }, [authToken, currentUser]);
+
   // Sync cart & wishlist to database when they change locally
   useEffect(() => {
-    if (currentUser && currentUser.email) {
+    if (currentUser && currentUser.email && authToken) {
       const syncCartWishlist = async () => {
         try {
-          await fetch(`${API_URL}/user/sync`, {
+          await apiFetch('/user/sync', {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               email: currentUser.email,
               cart,
@@ -212,10 +238,11 @@ export const StoreProvider = ({ children }) => {
       const updatedUser = { ...currentUser, cart, wishlist };
       saveLocal(KEYS.currentUser, updatedUser);
     }
-  }, [cart, wishlist, currentUser, currentUser?.email]);
+  }, [apiFetch, authToken, cart, wishlist, currentUser, currentUser?.email]);
 
   // Persistent States Session/Local Sync
   useEffect(() => saveLocal(KEYS.currentUser, currentUser), [currentUser]);
+  useEffect(() => saveLocal(KEYS.authToken, authToken), [authToken]);
   useEffect(() => saveLocal(KEYS.adminSession, adminSession), [adminSession]);
   useEffect(() => saveLocal(KEYS.cart, cart), [cart]);
   useEffect(() => saveLocal(KEYS.wishlist, wishlist), [wishlist]);
@@ -308,9 +335,8 @@ export const StoreProvider = ({ children }) => {
         }))
       };
 
-      const res = await fetch(`${API_URL}/orders`, {
+      const res = await apiFetch('/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
       const savedOrder = await res.json();
@@ -329,9 +355,8 @@ export const StoreProvider = ({ children }) => {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      const res = await fetch(`${API_URL}/orders/${orderId}/status`, {
+      const res = await apiFetch(`/orders/${orderId}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
       const updatedOrder = await res.json();
@@ -370,9 +395,8 @@ export const StoreProvider = ({ children }) => {
       const firstname = parts[0] || currentUser.firstname || '';
       const lastname = parts.slice(1).join(' ') || currentUser.lastname || '';
       
-      const res = await fetch(`${API_URL}/user/profile`, {
+      const res = await apiFetch('/user/profile', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: currentUser.email,
           firstname,
@@ -385,10 +409,12 @@ export const StoreProvider = ({ children }) => {
       if (res.ok) {
         const updatedUser = resData.data;
         setCurrentUser(updatedUser);
-        const usersRes = await fetch(`${API_URL}/user/list`);
-        if (usersRes.ok) {
-          const usersData = await usersRes.json();
-          setUsers(usersData);
+        if (updatedUser.role === 'admin') {
+          const usersRes = await apiFetch('/user/list');
+          if (usersRes.ok) {
+            const usersData = await usersRes.json();
+            setUsers(usersData);
+          }
         }
       }
     } catch (err) {
@@ -399,9 +425,8 @@ export const StoreProvider = ({ children }) => {
   // Offers/Coupons actions
   const addOffer = async (offer) => {
     try {
-      const res = await fetch(`${API_URL}/offers`, {
+      const res = await apiFetch('/offers', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(offer)
       });
       const savedOffer = await res.json();
@@ -415,7 +440,7 @@ export const StoreProvider = ({ children }) => {
 
   const deleteOffer = async (code) => {
     try {
-      const res = await fetch(`${API_URL}/offers/${code}`, {
+      const res = await apiFetch(`/offers/${code}`, {
         method: 'DELETE'
       });
       if (res.ok) {
@@ -428,7 +453,7 @@ export const StoreProvider = ({ children }) => {
 
   const toggleOfferStatus = async (code) => {
     try {
-      const res = await fetch(`${API_URL}/offers/${code}/toggle`, {
+      const res = await apiFetch(`/offers/${code}/toggle`, {
         method: 'PUT'
       });
       const updatedOffer = await res.json();
@@ -444,18 +469,12 @@ export const StoreProvider = ({ children }) => {
 
   const signup = async ({ name, email, password, phone }) => {
     try {
-      const res = await fetch(`${API_URL}/user/signup`, {
+      const res = await apiFetch('/user/signup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, phone, password })
       });
       const data = await res.json();
       if (res.ok) {
-        const usersRes = await fetch(`${API_URL}/user/list`);
-        if (usersRes.ok) {
-          const usersData = await usersRes.json();
-          setUsers(usersData);
-        }
         setLoginState({ lastEmail: email.trim().toLowerCase(), signedUpAt: Date.now() });
         return { ok: true, message: 'Signup successful. Redirecting to login...' };
       } else {
@@ -468,14 +487,14 @@ export const StoreProvider = ({ children }) => {
 
   const login = async ({ email, password }) => {
     try {
-      const res = await fetch(`${API_URL}/user/login`, {
+      const res = await apiFetch('/user/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
       const resData = await res.json();
       if (res.ok) {
         const user = resData.data;
+        setAuthToken(resData.token || '');
         setCurrentUser(user);
         setCart(normalizeCart(user.cart || []));
         setWishlist(user.wishlist || []);
@@ -492,9 +511,8 @@ export const StoreProvider = ({ children }) => {
 
   const adminLogin = async ({ email, password }) => {
     try {
-      const res = await fetch(`${API_URL}/user/login`, {
+      const res = await apiFetch('/user/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
       const resData = await res.json();
@@ -503,6 +521,7 @@ export const StoreProvider = ({ children }) => {
         if (user.role !== 'admin') {
           return { ok: false, message: 'Invalid admin credentials.' };
         }
+        setAuthToken(resData.token || '');
         setAdminSession(true);
         setCurrentUser(user);
         setCart(normalizeCart(user.cart || []));
@@ -518,6 +537,7 @@ export const StoreProvider = ({ children }) => {
 
   const adminLogout = () => {
     setAdminSession(false);
+    setAuthToken('');
     setCurrentUser(null);
     setCart([]);
     setWishlist([]);
@@ -525,6 +545,7 @@ export const StoreProvider = ({ children }) => {
 
   const logout = () => {
     setCurrentUser(null);
+    setAuthToken('');
     setAdminSession(false);
     setCart([]);
     setWishlist([]);
@@ -532,9 +553,8 @@ export const StoreProvider = ({ children }) => {
 
   const addProduct = async ({ name, category, price, image, rating = 4.0 }) => {
     try {
-      const res = await fetch(`${API_URL}/products`, {
+      const res = await apiFetch('/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, category, price, image, rating })
       });
       const savedProduct = await res.json();
@@ -548,9 +568,8 @@ export const StoreProvider = ({ children }) => {
 
   const updateProductStock = async (productId, size, value) => {
     try {
-      const res = await fetch(`${API_URL}/products/${productId}/stock`, {
+      const res = await apiFetch(`/products/${productId}/stock`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ size, value })
       });
       const updatedProduct = await res.json();
@@ -566,7 +585,7 @@ export const StoreProvider = ({ children }) => {
 
   const deleteProduct = async (id) => {
     try {
-      const res = await fetch(`${API_URL}/products/${id}`, {
+      const res = await apiFetch(`/products/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {

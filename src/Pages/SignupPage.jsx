@@ -112,10 +112,10 @@ const SignupPage = () => {
                     <InputAdornment position="end">
                       <IconButton
                         size="small"
-                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        onClick={() => setShowPassword((prev) => !prev)}
                         edge="end"
                       >
-                        {showConfirmPassword ? (
+                        {showPassword ? (
                           <VisibilityOffIcon fontSize="small" />
                         ) : (
                           <VisibilityIcon fontSize="small" />
@@ -138,10 +138,10 @@ const SignupPage = () => {
                     <InputAdornment position="end">
                       <IconButton
                         size="small"
-                        onClick={() => setShowPassword((prev) => !prev)}
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
                         edge="end"
                       >
-                        {showPassword ? (
+                        {showConfirmPassword ? (
                           <VisibilityOffIcon fontSize="small" />
                         ) : (
                           <VisibilityIcon fontSize="small" />
