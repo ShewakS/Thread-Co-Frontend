@@ -23,7 +23,7 @@ const SignupPage = () => {
   });
   const [notice, setNotice] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // eslint-disable-line no-unused-vars
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const onChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
@@ -112,10 +112,10 @@ const SignupPage = () => {
                     <InputAdornment position="end">
                       <IconButton
                         size="small"
-                        onClick={() => setShowPassword((prev) => !prev)}
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
                         edge="end"
                       >
-                        {showPassword ? (
+                        {showConfirmPassword ? (
                           <VisibilityOffIcon fontSize="small" />
                         ) : (
                           <VisibilityIcon fontSize="small" />
