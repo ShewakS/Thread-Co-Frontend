@@ -36,7 +36,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page login-auth-page">
       <div className="auth-form-panel">
         <div className="auth-form-inner">
           <div className="auth-logo">THREAD & CO</div>
@@ -53,7 +53,6 @@ const LoginPage = () => {
                 value={form.email}
                 size="small"
                 onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', background: '#f5f5f5' } }}
               />
             </div>
 
@@ -69,7 +68,6 @@ const LoginPage = () => {
                 value={form.password}
                 size="small"
                 onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '8px', background: '#f5f5f5' } }}
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -90,15 +88,7 @@ const LoginPage = () => {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{
-                background: '#e05c6e',
-                borderRadius: '8px',
-                padding: '0.75rem',
-                fontSize: '1rem',
-                fontWeight: 700,
-                textTransform: 'none',
-                '&:hover': { background: '#c94d5f' }
-              }}
+              className="auth-submit"
             >
               Login Now
             </Button>

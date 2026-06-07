@@ -9,6 +9,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 import { useStore, validators } from "../Components/StoreContext";
+import loginImage from "../Assets/Images/login page.jpg";
 
 const SignupPage = () => {
   const { signup } = useStore();
@@ -72,108 +73,97 @@ const SignupPage = () => {
   };
 
   return (
-    <main className="section section-alt">
-      <section className="container">
-        <div className="form-wrap">
-          <h1 className="form-title">Create Your Account</h1>
-          <p className="form-subtitle">
-            Join THREAD & CO and discover modern essentials.
-          </p>
-          <form className="form-grid" onSubmit={onSubmit} noValidate>
-            <TextField
-              label="First Name"
-              value={form.firstname}
-              onChange={onChange("firstname")}
-            />
-            <TextField
-              label="Last Name"
-              value={form.lastname}
-              onChange={onChange("lastname")}
-            />
-            <TextField
-              label="Email"
-              value={form.email}
-              onChange={onChange("email")}
-              type="email"
-            />
-            <TextField
-              label="Phone Number"
-              value={form.phone}
-              onChange={onChange("phone")}
-            />
-            <TextField
-              label="Password"
-              value={form.password}
-              onChange={onChange("password")}
-              type={showPassword ? "text" : "password"}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        size="small"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        edge="end"
-                      >
-                        {showPassword ? (
-                          <VisibilityOffIcon fontSize="small" />
-                        ) : (
-                          <VisibilityIcon fontSize="small" />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
+    <div className="auth-page">
+      <div className="auth-form-panel">
+        <div className="auth-form-inner auth-form-inner-wide">
+          <div className="auth-logo">THREAD & CO</div>
+          <h2 className="auth-title">Create Account</h2>
+          <p className="auth-subtitle">Join THREAD & CO and discover modern essentials curated for everyday wear.</p>
 
-            <TextField
-              label="Confirm Password"
-              value={form.confirmPassword}
-              onChange={onChange("confirmPassword")}
-              type={showConfirmPassword ? "text" : "password"}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        size="small"
-                        onClick={() => setShowConfirmPassword((prev) => !prev)}
-                        edge="end"
-                      >
-                        {showConfirmPassword ? (
-                          <VisibilityOffIcon fontSize="small" />
-                        ) : (
-                          <VisibilityIcon fontSize="small" />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
+          <form className="auth-form-grid" onSubmit={onSubmit} noValidate>
+            <div className="auth-two-col">
+              <div className="auth-field">
+                <label className="auth-label">First Name <span className="auth-required">*</span></label>
+                <TextField fullWidth placeholder="First Name" value={form.firstname} size="small" onChange={onChange("firstname")} />
+              </div>
+              <div className="auth-field">
+                <label className="auth-label">Last Name <span className="auth-required">*</span></label>
+                <TextField fullWidth placeholder="Last Name" value={form.lastname} size="small" onChange={onChange("lastname")} />
+              </div>
+            </div>
 
-            <Button
-              color="secondary"
-              variant="contained"
-              className="btn btn-block"
-              type="submit"
-            >
-              Signup
+            <div className="auth-field">
+              <label className="auth-label">Email Address <span className="auth-required">*</span></label>
+              <TextField fullWidth placeholder="Enter Email Address" value={form.email} onChange={onChange("email")} type="email" size="small" />
+            </div>
+
+            <div className="auth-field">
+              <label className="auth-label">Phone Number <span className="auth-required">*</span></label>
+              <TextField fullWidth placeholder="Phone Number" value={form.phone} onChange={onChange("phone")} size="small" />
+            </div>
+
+            <div className="auth-field">
+              <label className="auth-label">Password <span className="auth-required">*</span></label>
+              <TextField
+                fullWidth
+                placeholder="Password"
+                value={form.password}
+                onChange={onChange("password")}
+                type={showPassword ? "text" : "password"}
+                size="small"
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setShowPassword((prev) => !prev)} edge="end">
+                          {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </div>
+
+            <div className="auth-field">
+              <label className="auth-label">Confirm Password <span className="auth-required">*</span></label>
+              <TextField
+                fullWidth
+                placeholder="Confirm Password"
+                value={form.confirmPassword}
+                onChange={onChange("confirmPassword")}
+                type={showConfirmPassword ? "text" : "password"}
+                size="small"
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setShowConfirmPassword((prev) => !prev)} edge="end">
+                          {showConfirmPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </div>
+
+            {notice ? <Alert severity={notice.type}>{notice.text}</Alert> : null}
+
+            <Button type="submit" fullWidth variant="contained" className="auth-submit">
+              Sign Up Now
             </Button>
-            <p>
-              Already have an account?{" "}
-              <Link to="/login" className="helper-link">
-                Login
-              </Link>
+            <p className="auth-switch-text">
+              Already Have An Account? <Link to="/login" className="auth-switch-link">Login Now</Link>
             </p>
-            {notice ? (
-              <Alert severity={notice.type}>{notice.text}</Alert>
-            ) : null}
           </form>
         </div>
-      </section>
-    </main>
+      </div>
+
+      <div className="auth-image-panel">
+        <img src={loginImage} alt="THREAD & CO signup" />
+      </div>
+    </div>
   );
 };
 

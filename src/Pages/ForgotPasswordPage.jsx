@@ -4,6 +4,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import { useStore, validators } from '../Components/StoreContext';
+import loginImage from '../Assets/Images/login page.jpg';
 
 const ForgotPasswordPage = () => {
   const { resetState, setResetState } = useStore();
@@ -20,24 +21,35 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <main className="section section-alt">
-      <section className="container">
-        <div className="form-wrap">
-          <h1 className="form-title">Forgot Password</h1>
-          <p className="form-subtitle">Enter your registered email to receive a reset link.</p>
-          <form className="form-grid" onSubmit={onSubmit} noValidate>
-            <TextField label="Email" value={email} onChange={(event) => setEmail(event.target.value)} type="email" />
-            <Button color="secondary" variant="contained" className="btn btn-block" type="submit">
+    <div className="auth-page login-auth-page">
+      <div className="auth-form-panel">
+        <div className="auth-form-inner">
+          <div className="auth-logo">THREAD & CO</div>
+          <h2 className="auth-title">Forgot Password</h2>
+          <p className="auth-subtitle">Enter your registered email address and we will send a reset link.</p>
+
+          <form className="auth-form-grid" onSubmit={onSubmit} noValidate>
+            <div className="auth-field">
+              <label className="auth-label">Email Address <span className="auth-required">*</span></label>
+              <TextField fullWidth placeholder="Enter Email Address" value={email} onChange={(event) => setEmail(event.target.value)} type="email" size="small" />
+            </div>
+
+            {notice ? <Alert severity={notice.type}>{notice.text}</Alert> : null}
+
+            <Button fullWidth variant="contained" className="auth-submit" type="submit">
               Send Reset Link
             </Button>
-            <p>
-              Remembered your password? <Link to="/login" className="helper-link">Back to Login</Link>
+            <p className="auth-switch-text">
+              Remembered your password? <Link to="/login" className="auth-switch-link">Back to Login</Link>
             </p>
-            {notice ? <Alert severity={notice.type}>{notice.text}</Alert> : null}
           </form>
         </div>
-      </section>
-    </main>
+      </div>
+
+      <div className="auth-image-panel">
+        <img src={loginImage} alt="THREAD & CO password reset" />
+      </div>
+    </div>
   );
 };
 

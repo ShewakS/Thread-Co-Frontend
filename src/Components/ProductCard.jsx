@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia'; // Note: Wait, card media is from @mui/material/CardMedia in original code. Let's make sure it's @mui/material/CardMedia so it works!
+import CardMedia from '@mui/material/CardMedia';
 import Rating from '@mui/material/Rating';
 import StarIcon from '@mui/icons-material/Star';
 import { formatMoney } from './StoreContext';
@@ -15,7 +15,7 @@ const ratingLabels = {
   3: 'Ok+', 3.5: 'Good', 4: 'Good+', 4.5: 'Excellent', 5: 'Excellent+'
 };
 
-const ProductCard = ({ product, onAddToCart, actionLabel = 'Add to Cart' }) => {
+const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const [rating, setRating] = useState(product.rating || 0);
   const [hover, setHover] = useState(-1);
@@ -45,7 +45,7 @@ const ProductCard = ({ product, onAddToCart, actionLabel = 'Add to Cart' }) => {
             <span className="rating-label">{ratingLabels[hover !== -1 ? hover : rating]}</span>
           )}
         </Box>
-        <Button color="secondary" variant="contained" className="btn" onClick={goToDetails}>
+        <Button color="secondary" variant="outlined" className="btn product-card-action" onClick={goToDetails}>
           View Details
         </Button>
       </CardContent>

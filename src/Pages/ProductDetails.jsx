@@ -122,7 +122,7 @@ const ProductDetails = () => {
   return (
     <main className="section section-alt">
       <div className="container">
-        <Link to="/products" className="back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+        <Link to="/products" className="back-link product-back-link">
           <ArrowBackIcon fontSize="small" /> Back to Collection
         </Link>
 
@@ -132,53 +132,42 @@ const ProductDetails = () => {
           </Alert>
         )}
 
-        <div className="product-details-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)', gap: '3rem', margin: '0 auto 4rem' }}>
+        <div className="product-details-grid product-details-shell">
           {/* Gallery Section */}
           <div className="product-gallery">
-            <div className="main-image-container" style={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border)', background: '#fff', aspectRatio: '4/5', marginBottom: '1rem' }}>
+            <div className="main-image-container product-main-image">
               <img 
                 src={resolveImage(activeImage || product.image)} 
                 alt={product.name} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </div>
-            <div className="thumbnail-strip" style={{ display: 'flex', gap: '0.8rem', overflowX: 'auto' }}>
+            <div className="thumbnail-strip product-thumbnail-strip">
               {galleryImages.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImage(img)}
-                  style={{
-                    border: activeImage === img ? '2px solid var(--accent)' : '1px solid var(--border)',
-                    borderRadius: '10px',
-                    overflow: 'hidden',
-                    width: '72px',
-                    height: '90px',
-                    cursor: 'pointer',
-                    background: '#fff',
-                    padding: 0,
-                    opacity: activeImage === img ? 1 : 0.7
-                  }}
+                  className={`product-thumb ${activeImage === img ? 'active' : ''}`}
                 >
-                  <img src={resolveImage(img)} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={resolveImage(img)} alt="thumb" />
                 </button>
               ))}
             </div>
           </div>
 
           {/* Info Section */}
-          <div className="product-purchase-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="product-purchase-panel">
             <div>
               <p className="eyebrow" style={{ marginBottom: '0.5rem' }}>{product.category}</p>
-              <h1 className="section-title" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{product.name}</h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+              <h1 className="section-title product-detail-title">{product.name}</h1>
+              <div className="product-rating-row">
                 <Rating value={product.rating || 4.5} precision={0.5} readOnly size="small" />
-                <span style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: 600 }}>({reviews.length} customer reviews)</span>
+                <span>({reviews.length} customer reviews)</span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '1rem' }}>
-              <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--black)' }}>{formatMoney(product.price)}</span>
-              <span style={{ textDecoration: 'line-line-through', color: 'var(--text-muted)', opacity: 0.7 }}>{formatMoney(product.price * 1.25)}</span>
+            <div className="product-price-row">
+              <span className="product-detail-price">{formatMoney(product.price)}</span>
+              <span className="product-compare-price">{formatMoney(product.price * 1.25)}</span>
               <span className="eyebrow" style={{ background: '#fbe9e8', color: 'var(--danger)', fontSize: '0.78rem' }}>20% OFF</span>
             </div>
 
@@ -199,22 +188,12 @@ const ProductDetails = () => {
                   </Button>
                 </Link>
               </div>
-              <div style={{ display: 'flex', gap: '0.8rem' }}>
+              <div className="product-choice-row">
                 {['S', 'M', 'L', 'XL'].map(size => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    style={{
-                      width: '46px',
-                      height: '46px',
-                      borderRadius: '50%',
-                      border: selectedSize === size ? '2px solid var(--accent)' : '1px solid var(--border)',
-                      background: selectedSize === size ? 'var(--accent)' : '#fff',
-                      color: selectedSize === size ? '#fff' : 'var(--text)',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
+                    className={`size-choice ${selectedSize === size ? 'active' : ''}`}
                   >
                     {size}
                   </button>
@@ -225,22 +204,12 @@ const ProductDetails = () => {
             {/* Color Selector */}
             <div>
               <label style={{ fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Select Color</label>
-              <div style={{ display: 'flex', gap: '0.8rem' }}>
+              <div className="product-choice-row">
                 {['Classic Beige', 'Sage Green', 'Indigo Blue'].map(color => (
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      borderRadius: '999px',
-                      border: selectedColor === color ? '2px solid var(--accent)' : '1px solid var(--border)',
-                      background: selectedColor === color ? 'var(--accent-soft)' : '#fff',
-                      color: 'var(--text)',
-                      fontWeight: 600,
-                      fontSize: '0.84rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
+                    className={`color-choice ${selectedColor === color ? 'active' : ''}`}
                   >
                     {color}
                   </button>
@@ -251,18 +220,16 @@ const ProductDetails = () => {
             {/* Quantity Selector & Actions */}
             <div>
               <label style={{ fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>Quantity</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: '10px', overflow: 'hidden', background: '#fff' }}>
+              <div className="product-action-row">
+                <div className="quantity-control">
                   <button 
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    style={{ padding: '0.6rem 1rem', border: 0, background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     -
                   </button>
-                  <span style={{ padding: '0 1rem', fontWeight: 700, minWidth: '40px', textAlign: 'center' }}>{quantity}</span>
+                  <span>{quantity}</span>
                   <button 
                     onClick={() => setQuantity(q => q + 1)}
-                    style={{ padding: '0.6rem 1rem', border: 0, background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     +
                   </button>
@@ -273,24 +240,14 @@ const ProductDetails = () => {
                   variant="contained" 
                   onClick={handleAddToCart}
                   startIcon={<ShoppingBagOutlinedIcon />}
-                  style={{ flex: 1, padding: '0.8rem 1.5rem', borderRadius: '12px' }}
+                  className="product-add-button"
                 >
                   Add to Bag
                 </Button>
 
                 <button 
                   onClick={handleWishlistToggle}
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '12px',
-                    border: '1px solid var(--border)',
-                    background: '#fff',
-                    display: 'grid',
-                    placeItems: 'center',
-                    cursor: 'pointer',
-                    color: isWishlisted ? 'var(--danger)' : 'var(--text-muted)'
-                  }}
+                  className={`wishlist-toggle ${isWishlisted ? 'active' : ''}`}
                   title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
                 >
                   {isWishlisted ? <FavoriteIcon /> : <FavoriteBorderOutlinedIcon />}
@@ -300,23 +257,12 @@ const ProductDetails = () => {
 
             {/* Tabbed Info */}
             <div style={{ marginTop: '1.5rem' }}>
-              <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
+              <div className="product-tabs">
                 {['details', 'specs', 'care'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    style={{
-                      padding: '0.6rem 1.2rem',
-                      border: 0,
-                      background: 'transparent',
-                      borderBottom: activeTab === tab ? '2px solid var(--accent)' : '0',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      color: activeTab === tab ? 'var(--accent)' : 'var(--text-muted)',
-                      textTransform: 'uppercase',
-                      fontSize: '0.8rem',
-                      letterSpacing: '0.05em'
-                    }}
+                    className={activeTab === tab ? 'active' : ''}
                   >
                     {tab === 'details' ? 'Description' : tab === 'specs' ? 'Fabric Details' : 'Care Guide'}
                   </button>
@@ -414,25 +360,7 @@ const ProductDetails = () => {
             <h2 className="section-title" style={{ fontSize: '1.8rem', textAlign: 'center', marginBottom: '2rem' }}>You May Also Like</h2>
             <div className="grid-4 product-grid">
               {relatedProducts.map(p => (
-                <div key={p.id} style={{ display: 'flex', flexDirection: 'column' }}>
-                  <ProductCard product={p} onAddToCart={addToCart} />
-                  <Link 
-                    to={`/product/${p.id}`} 
-                    className="btn" 
-                    style={{ 
-                      marginTop: '0.5rem', 
-                      textAlign: 'center', 
-                      background: 'var(--accent)', 
-                      color: '#fff', 
-                      borderRadius: '10px', 
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      padding: '0.5rem'
-                    }}
-                  >
-                    View Details
-                  </Link>
-                </div>
+                <ProductCard key={p.id} product={p} />
               ))}
             </div>
           </section>
