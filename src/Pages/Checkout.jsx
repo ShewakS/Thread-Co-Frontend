@@ -140,7 +140,7 @@ const Checkout = () => {
       customer: getCustomerName(),
       email: currentUser?.email,
       phone: getCustomerPhone(),
-      preferredPayment: paymentMethod === 'gpay' ? 'GPay' : 'Razorpay'
+      preferredPayment: 'Razorpay'
     });
 
     if (!paymentOrder.ok) {
@@ -150,33 +150,19 @@ const Checkout = () => {
     }
 
     const { key, paymentId, order } = paymentOrder.data;
-    const gpayDisplay = paymentMethod === 'gpay'
-      ? {
-          blocks: {
-            upi: {
-              name: 'Google Pay / UPI',
-              instruments: [{ method: 'upi' }]
-            }
-          },
-          sequence: ['block.upi'],
-          preferences: { show_default_blocks: false }
-        }
-      : undefined;
-
     const razorpay = new window.Razorpay({
       key,
       amount: order.amount,
       currency: order.currency,
       name: 'THREAD & CO',
-      description: paymentMethod === 'gpay' ? 'Google Pay / UPI payment' : 'Order payment',
+      description: 'Order payment',
       order_id: order.id,
       method: {
         upi: true,
-        card: paymentMethod !== 'gpay',
-        netbanking: paymentMethod !== 'gpay',
-        wallet: paymentMethod !== 'gpay'
+        card: true,
+        netbanking: true,
+        wallet: true
       },
-      config: gpayDisplay ? { display: gpayDisplay } : undefined,
       prefill: {
         name: getCustomerName(),
         email: currentUser?.email || '',
@@ -192,7 +178,7 @@ const Checkout = () => {
           return;
         }
 
-        const newOrderId = await placeOrder(fullAddress, paymentMethod === 'gpay' ? 'Google Pay (Razorpay UPI)' : 'Razorpay', {
+        const newOrderId = await placeOrder(fullAddress, 'Razorpay', {
           paymentId,
           paymentStatus: 'Paid',
           razorpayPaymentId: response.razorpay_payment_id
@@ -318,7 +304,6 @@ const Checkout = () => {
               <div className="payment-method-grid">
                 {[
                   { id: 'razorpay', label: 'Razorpay', icon: <AccountBalanceWalletIcon /> },
-                  { id: 'gpay', label: 'GPay', icon: <AccountBalanceWalletIcon /> },
                   { id: 'cod', label: 'Cash on Delivery', icon: <LocalShippingIcon /> }
                 ].map((option) => (
                   <button
@@ -336,9 +321,7 @@ const Checkout = () => {
               <div className="payment-note">
                 {paymentMethod === 'cod'
                   ? <p><strong>Cash on Delivery:</strong> Payment status will be marked as COD until delivery collection.</p>
-                  : paymentMethod === 'gpay'
-                    ? <p><strong>Google Pay:</strong> Razorpay will open a UPI-focused checkout for Google Pay or any installed UPI app.</p>
-                    : <p>Pay securely with Razorpay using UPI, cards, netbanking, or wallets.</p>}
+                  : <p>Pay securely with Razorpay using UPI, cards, netbanking, or wallets.</p>}
               </div>
             </article>
           </div>
@@ -380,7 +363,7 @@ const Checkout = () => {
               </div>
 
               <Button color="secondary" variant="contained" onClick={handlePlaceOrder} disabled={isPaying} className="btn btn-block checkout-submit">
-                {isPaying ? 'Opening Payment...' : paymentMethod === 'cod' ? 'Confirm COD Order' : paymentMethod === 'gpay' ? 'Pay with GPay' : 'Go to Payment'}
+                {isPaying ? 'Opening Payment...' : paymentMethod === 'cod' ? 'Confirm COD Order' : 'Go to Payment'}
               </Button>
             </article>
           </div>

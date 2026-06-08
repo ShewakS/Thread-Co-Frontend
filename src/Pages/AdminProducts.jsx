@@ -31,6 +31,8 @@ const AdminProducts = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [stockForm, setStockForm] = useState({ S: 0, M: 0, L: 0, XL: 0 });
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isSavingStock, setIsSavingStock] = useState(false);
 
   const handleImageImport = (event) => {
     const file = event.target.files?.[0];
@@ -67,12 +69,14 @@ const AdminProducts = () => {
     if (!/^[1-9]\d*$/.test(addForm.price)) return setAddNotice({ type: 'error', text: 'Enter a valid price.' });
     if (!validators.isValidImage(addForm.image)) return setAddNotice({ type: 'error', text: 'Import a product image from your device.' });
 
+    setIsPublishing(true);
     const result = await addProduct({
       name: addForm.name,
       category: addForm.category,
       price: Number(addForm.price),
       image: addForm.image
     });
+    setIsPublishing(false);
     if (!result.ok) return setAddNotice({ type: 'error', text: result.message });
 
     setAddForm({ name: '', category: '', price: '', image: '' });
@@ -92,14 +96,24 @@ const AdminProducts = () => {
     setDialogOpen(true);
   };
 
-  const handleSaveStock = () => {
+  const handleSaveStock = async () => {
     if (!selectedProduct) return;
-    updateProductStock(selectedProduct.id, 'S', stockForm.S);
-    updateProductStock(selectedProduct.id, 'M', stockForm.M);
-    updateProductStock(selectedProduct.id, 'L', stockForm.L);
-    updateProductStock(selectedProduct.id, 'XL', stockForm.XL);
+    setIsSavingStock(true);
+    const results = await Promise.all([
+      updateProductStock(selectedProduct.id, 'S', stockForm.S),
+      updateProductStock(selectedProduct.id, 'M', stockForm.M),
+      updateProductStock(selectedProduct.id, 'L', stockForm.L),
+      updateProductStock(selectedProduct.id, 'XL', stockForm.XL)
+    ]);
+    setIsSavingStock(false);
+    if (results.some((result) => result && result.ok === false)) {
+      setAddNotice({ type: 'error', text: 'Unable to save one or more stock values.' });
+      return;
+    }
     setDialogOpen(false);
     setSelectedProduct(null);
+    setAddNotice({ type: 'success', text: 'Inventory stock updated in database.' });
+    setTimeout(() => setAddNotice(null), 3000);
   };
 
   return (
@@ -239,8 +253,8 @@ const AdminProducts = () => {
                 </div>
               ) : null}
             </div>
-            <Button color="secondary" variant="contained" className="btn btn-block" type="submit">
-              Publish Product
+            <Button color="secondary" variant="contained" className="btn btn-block" type="submit" disabled={isPublishing}>
+              {isPublishing ? 'Publishing Product...' : 'Publish Product'}
             </Button>
             {addNotice ? <Alert severity={addNotice.type}>{addNotice.text}</Alert> : null}
           </form>
@@ -269,8 +283,8 @@ const AdminProducts = () => {
           <Button onClick={() => setDialogOpen(false)} color="inherit">
             Cancel
           </Button>
-          <Button onClick={handleSaveStock} color="secondary" variant="contained">
-            Save Stocks
+          <Button onClick={handleSaveStock} color="secondary" variant="contained" disabled={isSavingStock}>
+            {isSavingStock ? 'Saving Stocks...' : 'Save Stocks'}
           </Button>
         </DialogActions>
       </Dialog>

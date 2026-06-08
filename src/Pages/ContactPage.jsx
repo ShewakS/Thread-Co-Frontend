@@ -13,6 +13,7 @@ const ContactPage = () => {
     message: ''
   });
   const [notice, setNotice] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onChange = (field) => (event) => {
     const next = { ...form, [field]: event.target.value };
@@ -28,7 +29,9 @@ const ContactPage = () => {
     if (!validators.isValidSubject(form.subject)) return setNotice({ type: 'error', text: 'Enter a valid subject.' });
     if (form.message.trim().length < 10) return setNotice({ type: 'error', text: 'Message should be at least 10 characters long.' });
 
+    setIsSubmitting(true);
     const result = await submitContactMessage(form);
+    setIsSubmitting(false);
     setNotice({ type: result.ok ? 'success' : 'error', text: result.ok ? 'Message saved successfully. Our team will contact you soon.' : result.message });
     if (result.ok) setForm({ name: '', email: '', subject: '', message: '' });
   };
@@ -55,7 +58,9 @@ const ContactPage = () => {
                 multiline
                 minRows={4}
               />
-              <Button type="submit" color="secondary" variant="contained" className="btn">Submit</Button>
+              <Button type="submit" color="secondary" variant="contained" className="btn" disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting Message...' : 'Submit'}
+              </Button>
               {notice ? <Alert severity={notice.type}>{notice.text}</Alert> : null}
             </form>
           </article>

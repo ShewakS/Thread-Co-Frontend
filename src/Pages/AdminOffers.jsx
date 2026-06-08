@@ -18,8 +18,9 @@ const AdminOffers = () => {
 
   const [form, setForm] = useState({ code: '', discount: '', startDate: '', endDate: '' });
   const [notice, setNotice] = useState(null);
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setNotice(null);
 
@@ -35,12 +36,15 @@ const AdminOffers = () => {
       return setNotice({ type: 'error', text: `Coupon code "${code}" already exists.` });
     }
 
-    addOffer({
+    setIsPublishing(true);
+    const result = await addOffer({
       code,
       discount: Number(form.discount),
       startDate: form.startDate,
       endDate: form.endDate
     });
+    setIsPublishing(false);
+    if (!result.ok) return setNotice({ type: 'error', text: result.message });
     
     setForm({ code: '', discount: '', startDate: '', endDate: '' });
     setNotice({ type: 'success', text: `Coupon "${code}" published successfully.` });
@@ -54,10 +58,10 @@ const AdminOffers = () => {
         <p className="muted" style={{ margin: 0, color: 'var(--text-muted)' }}>Configure promotional store coupons, discount campaigns, and durations.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '2.5rem', alignItems: 'start' }}>
+      <div className="admin-offers-layout">
         
         {/* Active Coupons List */}
-        <article className="content-block" style={{ padding: '1.5rem' }}>
+        <article className="content-block admin-promo-form">
           <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
             Coupons Database
           </h3>
@@ -136,6 +140,7 @@ const AdminOffers = () => {
               onChange={e => setForm(prev => ({ ...prev, code: e.target.value }))}
               fullWidth
               required
+              size="small"
             />
             <TextField
               label="Discount Percentage (0 to 100)"
@@ -144,8 +149,9 @@ const AdminOffers = () => {
               onChange={e => setForm(prev => ({ ...prev, discount: e.target.value }))}
               fullWidth
               required
+              size="small"
             />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div className="admin-date-grid">
               <TextField
                 label="Start Date"
                 type="date"
@@ -153,6 +159,8 @@ const AdminOffers = () => {
                 value={form.startDate}
                 onChange={e => setForm(prev => ({ ...prev, startDate: e.target.value }))}
                 required
+                size="small"
+                fullWidth
               />
               <TextField
                 label="End Date"
@@ -161,10 +169,12 @@ const AdminOffers = () => {
                 value={form.endDate}
                 onChange={e => setForm(prev => ({ ...prev, endDate: e.target.value }))}
                 required
+                size="small"
+                fullWidth
               />
             </div>
-            <Button color="secondary" variant="contained" className="btn btn-block" type="submit">
-              Publish Promotion
+            <Button color="secondary" variant="contained" className="btn btn-block" type="submit" disabled={isPublishing}>
+              {isPublishing ? 'Publishing Promotion...' : 'Publish Promotion'}
             </Button>
             {notice && <Alert severity={notice.type}>{notice.text}</Alert>}
           </form>

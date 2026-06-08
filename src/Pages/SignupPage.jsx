@@ -44,6 +44,7 @@ const SignupPage = () => {
   const [notice, setNotice] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const passwordStrength = getPasswordStrength(form.password);
 
   const onChange = (field) => (event) => {
@@ -73,6 +74,7 @@ const SignupPage = () => {
     if (!form.acceptedPolicies)
       return setNotice({ type: "error", text: "Please accept the Terms & Conditions and Privacy Policy." });
 
+    setIsSubmitting(true);
     const result = await signup({
       name: `${form.firstname.trim()} ${form.lastname.trim()}`,
       email: form.email,
@@ -80,6 +82,7 @@ const SignupPage = () => {
       password: form.password,
       acceptedPolicies: form.acceptedPolicies,
     });
+    setIsSubmitting(false);
 
     setNotice({ type: result.ok ? "success" : "error", text: result.message });
     if (result.ok) {
@@ -211,8 +214,8 @@ const SignupPage = () => {
               }
             />
 
-            <Button type="submit" fullWidth variant="contained" className="auth-submit">
-              Sign Up Now
+            <Button type="submit" fullWidth variant="contained" className="auth-submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating Account...' : 'Sign Up Now'}
             </Button>
             <p className="auth-switch-text">
               Already Have An Account? <Link to="/login" className="auth-switch-link">Login Now</Link>

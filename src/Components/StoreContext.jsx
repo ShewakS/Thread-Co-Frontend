@@ -448,9 +448,12 @@ export const StoreProvider = ({ children }) => {
       const savedOffer = await res.json();
       if (res.ok) {
         setOffers((prev) => [savedOffer, ...prev]);
+        return { ok: true, offer: savedOffer };
       }
+      return { ok: false, message: savedOffer.message || 'Unable to add offer.' };
     } catch (err) {
       console.error("Error adding offer:", err);
+      return { ok: false, message: 'Error connecting to server.' };
     }
   };
 
@@ -594,9 +597,12 @@ export const StoreProvider = ({ children }) => {
         setProducts((prev) =>
           prev.map((prod) => (String(prod.id) === String(productId) ? updatedProduct : prod))
         );
+        return { ok: true, product: updatedProduct };
       }
+      return { ok: false, message: updatedProduct.message || 'Unable to update stock.' };
     } catch (err) {
       console.error("Error updating stock:", err);
+      return { ok: false, message: 'Error connecting to server.' };
     }
   };
 

@@ -19,6 +19,7 @@ const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [notice, setNotice] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async (event) => {
     event.preventDefault();
@@ -28,7 +29,9 @@ const LoginPage = () => {
     if (!form.password)
       return setNotice({ type: 'error', text: 'Password is required.' });
 
+    setIsSubmitting(true);
     const result = await login(form);
+    setIsSubmitting(false);
     setNotice({ type: result.ok ? 'success' : 'error', text: result.message });
     if (result.ok) {
       window.setTimeout(() => navigate(result.isAdmin ? '/admin/dashboard' : redirectTo), 900);
@@ -89,8 +92,9 @@ const LoginPage = () => {
               fullWidth
               variant="contained"
               className="auth-submit"
+              disabled={isSubmitting}
             >
-              Login Now
+              {isSubmitting ? 'Logging In...' : 'Login Now'}
             </Button>
 
             <p className="auth-switch-text">

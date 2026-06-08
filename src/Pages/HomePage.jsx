@@ -61,7 +61,7 @@ const HomePage = () => {
             Minimal silhouettes for everyday confidence.
           </p>
 
-          <div className="grid-3" style={{ marginBottom: '3rem' }}>
+          <div className="style-category-grid">
             <article className="card category-card">
               <div className="card-media">
                 <img src={resolveImage('images/men shirts.jpg')} alt="Men category" />
@@ -70,6 +70,19 @@ const HomePage = () => {
                 <p className="category-label">Men</p>
                 <div className="category-actions">
                   <Button color="secondary" variant="contained" className="btn" component={Link} to="/products?category=Men">
+                    Shop Now
+                  </Button>
+                </div>
+              </div>
+            </article>
+            <article className="card category-card">
+              <div className="card-media">
+                <img src={resolveImage('images/download.webp')} alt="Kids category" />
+              </div>
+              <div className="card-body">
+                <p className="category-label">Kids</p>
+                <div className="category-actions">
+                  <Button color="secondary" variant="contained" className="btn" component={Link} to="/products?category=Kids">
                     Shop Now
                   </Button>
                 </div>

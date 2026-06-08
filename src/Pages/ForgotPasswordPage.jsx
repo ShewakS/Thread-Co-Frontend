@@ -10,12 +10,15 @@ const ForgotPasswordPage = () => {
   const { requestPasswordReset } = useStore();
   const [email, setEmail] = useState('');
   const [notice, setNotice] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async (event) => {
     event.preventDefault();
     setNotice(null);
     if (!validators.isValidEmail(email)) return setNotice({ type: 'error', text: 'Enter a valid email address.' });
+    setIsSubmitting(true);
     const result = await requestPasswordReset(email);
+    setIsSubmitting(false);
     setNotice({ type: result.ok ? 'success' : 'error', text: result.ok ? 'Password reset request saved.' : result.message });
     if (result.ok) setEmail('');
   };
@@ -36,8 +39,8 @@ const ForgotPasswordPage = () => {
 
             {notice ? <Alert severity={notice.type}>{notice.text}</Alert> : null}
 
-            <Button fullWidth variant="contained" className="auth-submit" type="submit">
-              Send Reset Link
+            <Button fullWidth variant="contained" className="auth-submit" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Sending Request...' : 'Send Reset Link'}
             </Button>
             <p className="auth-switch-text">
               Remembered your password? <Link to="/login" className="auth-switch-link">Back to Login</Link>
