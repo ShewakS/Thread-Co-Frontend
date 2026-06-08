@@ -1,70 +1,297 @@
-# Getting Started with Create React App
+# THREAD & CO
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A full-stack fashion e-commerce platform built with React, Material UI, Express, MongoDB, and Razorpay.
 
-## Available Scripts
+THREAD & CO provides a complete online shopping experience with secure authentication, product browsing, wishlist management, checkout, payment processing, order tracking, and an admin dashboard for managing products, inventory, users, coupons, and orders.
 
-In the project directory, you can run:
+## Live Demo
 
-### `npm start`
+**Frontend:** https://your-frontend-url.com
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Backend API:** https://your-backend-url.com
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Key Features
+### Customer Features
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+* JWT-based user authentication
+* User registration and login
+* Terms & Privacy acceptance during signup
+* Password strength validation
+* Product catalog with category filtering and search
+* Product details with size and color selection
+* Shopping cart management
+* Wishlist functionality
+* Product reviews and ratings
+* Multiple saved shipping addresses
+* Secure checkout process
+* Razorpay payment integration
+* Cash on Delivery (COD) support
+* Order history and tracking
 
-### `npm run build`
+### Admin Features
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+* Dashboard analytics and KPIs
+* Product management
+* Inventory stock management
+* User management
+* Order management
+* Coupon and offer management
+* Recent orders monitoring
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Tech Stack
 
-### `npm run eject`
+### Frontend
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+* React
+* React Router
+* Material UI (MUI)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Backend
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+* Node.js
+* Express.js
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Database
 
-## Learn More
+* MongoDB Atlas
+* Mongoose
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Authentication & Security
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+* JWT (JSON Web Tokens)
+* bcryptjs
 
-### Code Splitting
+### Payments
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+* Razorpay
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## System Architecture
 
-### Making a Progressive Web App
+```text
+React Frontend
+       │
+Express REST API
+       │
+MongoDB Atlas
+       │
+Razorpay Payment Gateway
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Database Models
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+* User
+* Product
+* Order
+* Payment
+* Wishlist
+* Review
+* Offer
+* ContactMessage
+* PasswordReset
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## API Modules
 
-### `npm run build` fails to minify
+```text
+/api/user
+/api/products
+/api/orders
+/api/offers
+/api/payments
+/api/wishlist
+/api/reviews
+/api/contact
+/api/password-reset
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## Project Structure
+
+```text
+Thread&Co/
+│
+├── frontend/
+│   ├── src/
+│   └── public/
+│
+├── backend/
+│   ├── models/
+│   ├── controllers/
+│   ├── routes/
+│   ├── utils/
+│   
+│
+└── README.md
+```
+
+---
+
+## Environment Variables
+
+### Backend
+
+Create `backend/.env`
+
+```env
+NODE_ENV=development
+PORT=5000
+MONGO_URL=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=7d
+BACKEND_URL=http://localhost:5000
+CORS_ORIGIN=http://localhost:3000
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+```
+
+### Frontend
+
+Create `frontend/.env`
+
+```env
+REACT_APP_API_URL=http://localhost:5000/api
+```
+
+For production deployment, replace local URLs with deployed URLs.
+
+---
+
+## Local Development Setup
+
+### Clone Repository
+
+```bash
+git clone <repository-url>
+cd Thread&Co
+```
+
+### Install Backend Dependencies
+cd backend
+npm install
+```
+
+### Install Frontend Dependencies
+
+```bash
+cd frontend
+npm install
+```
+
+### Start Backend
+
+```bash
+cd backend
+npm run dev
+```
+
+### Start Frontend
+
+```bash
+cd frontend
+npm start
+```
+
+Frontend: http://localhost:3000
+
+Backend: http://localhost:5000
+
+---
+
+## Build for Production
+
+```bash
+cd frontend
+npm run build
+```
+
+---
+
+## Payment Workflow
+
+1. User proceeds to checkout.
+2. Frontend requests Razorpay order creation.
+3. Razorpay Checkout opens.
+4. Payment is verified by the backend.
+5. Order and payment details are stored in MongoDB.
+6. User receives order confirmation.
+
+---
+
+## Data Persistence
+
+All business data is stored in MongoDB:
+
+* Users
+* Addresses
+* Products
+* Inventory
+* Orders
+* Payments
+* Wishlists
+* Reviews
+* Offers
+* Contact Messages
+* Password Reset Requests
+
+---
+
+## Challenges Solved
+
+* Secure JWT authentication and authorization
+* Payment verification using Razorpay signatures
+* Role-based admin access control
+* MongoDB schema relationships and data consistency
+* Inventory management and stock updates
+* End-to-end checkout and order processing
+
+---
+
+## Future Enhancements
+
+* Email notifications
+* Product recommendation engine
+* Sales analytics dashboard
+* Wishlist sharing
+* Product image search
+* Multi-vendor marketplace support
+
+---
+
+## Deployment Notes
+
+* Configure environment variables on the hosting platform.
+* Add deployed frontend URL to backend CORS settings.
+* Configure MongoDB Atlas network access.
+* Configure Razorpay test/live credentials.
+* Set production API URL in frontend environment variables.
+
+---
+
+## Scripts
+
+### Backend
+
+```bash
+npm start
+npm run dev
+```
+
+### Frontend
+
+```bash
+npm start
+npm run build
+npm test
+```
+
+---
