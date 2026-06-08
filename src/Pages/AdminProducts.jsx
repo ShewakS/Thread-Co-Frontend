@@ -43,8 +43,8 @@ const AdminProducts = () => {
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setAddNotice({ type: 'error', text: 'Please choose an image smaller than 2MB.' });
+    if (file.size > 7 * 1024 * 1024) {
+      setAddNotice({ type: 'error', text: 'Please choose an image smaller than 7MB.' });
       return;
     }
 
