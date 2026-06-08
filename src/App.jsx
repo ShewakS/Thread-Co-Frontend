@@ -5,6 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Layout from './Components/Layout';
+import ScrollToTop from './Components/ScrollToTop';
 import { StoreProvider } from './Components/StoreContext';
 import AppRoutes from './Routes/AppRoutes';
 import './Assets/Css/style.css';
@@ -22,6 +23,7 @@ const App = () => (
     <CssBaseline />
     <StoreProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Layout>
           <AppRoutes />
         </Layout>

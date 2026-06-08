@@ -1271,6 +1271,39 @@ html {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.cart-item-clean {
+  grid-template-columns: 96px minmax(0, 1fr) 72px minmax(96px, auto) auto;
+}
+
+.cart-item-info {
+  min-width: 0;
+}
+
+.cart-item-quantity,
+.cart-item-line-total {
+  display: grid;
+  gap: 0.2rem;
+  align-content: center;
+  justify-items: center;
+  min-height: 54px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(183, 164, 130, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.cart-item-line-total {
+  justify-items: end;
+}
+
+.cart-qty-label {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .cart-item-media {
   width: 112px;
   aspect-ratio: 1 / 1;
@@ -1621,6 +1654,21 @@ html {
     grid-template-columns: 72px minmax(0, 1fr);
   }
 
+  .cart-item-clean {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .cart-item-quantity,
+  .cart-item-line-total {
+    justify-items: start;
+  }
+
+  .cart-item-quantity,
+  .cart-item-line-total,
+  .cart-item-actions {
+    grid-column: 2;
+  }
+
   .cart-qty-controls {
     flex-wrap: wrap;
   }
@@ -1710,6 +1758,10 @@ html {
   gap: 0.65rem;
   overflow-x: auto;
   padding: 0.8rem 0 0.2rem;
+}
+
+.product-details-shell .product-thumbnail-strip {
+  display: none;
 }
 
 .product-thumb {
@@ -2101,6 +2153,367 @@ tr:hover td {
 .auth-submit.MuiButton-root:hover {
   background: #c94d5f;
   box-shadow: 0 8px 18px rgba(224, 92, 110, 0.22);
+}
+
+.auth-policy-check {
+  align-items: flex-start !important;
+  margin: -0.2rem 0 0 !important;
+}
+
+.auth-policy-check .MuiFormControlLabel-label {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.password-strength {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(248, 248, 239, 0.72);
+}
+
+.password-strength-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+.password-strength-head .weak {
+  color: var(--danger);
+}
+
+.password-strength-head .medium {
+  color: #9a6a00;
+}
+
+.password-strength-head .strong {
+  color: var(--success);
+}
+
+.password-strength-bar.weak .MuiLinearProgress-bar {
+  background: var(--danger);
+}
+
+.password-strength-bar.medium .MuiLinearProgress-bar {
+  background: #c58a00;
+}
+
+.password-strength-bar.strong .MuiLinearProgress-bar {
+  background: var(--success);
+}
+
+.password-requirements {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.password-requirements li.met {
+  color: var(--success);
+  font-weight: 800;
+}
+
+.checkout-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.checkout-main-column,
+.checkout-summary-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.checkout-summary-column {
+  position: sticky;
+  top: 120px;
+}
+
+.checkout-section-title {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.saved-address-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.saved-address-option {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+}
+
+.saved-address-option.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.saved-address-option input {
+  width: auto;
+  margin-top: 0.2rem;
+}
+
+.checkout-address-form {
+  margin-top: 0.25rem;
+}
+
+.checkout-two-col,
+.checkout-three-col {
+  display: grid;
+  gap: 1rem;
+}
+
+.checkout-two-col {
+  grid-template-columns: 1fr 1fr;
+}
+
+.checkout-three-col {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.payment-method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.payment-method-card {
+  padding: 1rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.payment-method-card.active {
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.payment-note {
+  padding: 1rem;
+  background: var(--bg-muted);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.payment-note p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.checkout-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 220px;
+  overflow-y: auto;
+  margin-bottom: 1.5rem;
+  padding-right: 0.5rem;
+}
+
+.checkout-item-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.checkout-item-image,
+.order-detail-image {
+  width: 48px;
+  height: 58px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-muted);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+.checkout-item-image img,
+.order-detail-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.checkout-item-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.checkout-item-info h4 {
+  margin: 0;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checkout-item-info p {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.checkout-coupon-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.checkout-coupon-form input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  flex-grow: 1;
+}
+
+.checkout-coupon-form button {
+  background: var(--accent);
+  color: var(--white);
+  border: 0;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.checkout-total-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.checkout-total-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.checkout-total-list strong {
+  color: var(--black);
+}
+
+.checkout-total-list .success-row,
+.checkout-total-list .success-row strong {
+  color: var(--success);
+}
+
+.checkout-total-list hr {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  margin: 0.5rem 0;
+}
+
+.checkout-grand-total {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--black);
+}
+
+.checkout-submit.MuiButton-root {
+  margin-top: 1.5rem;
+  padding: 0.8rem 1rem;
+  font-size: 0.94rem;
+  border-radius: 12px;
+}
+
+.order-detail-item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 0.85rem;
+  align-items: center;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #f6f6ef;
+  padding-bottom: 0.65rem;
+}
+
+.order-detail-item.compact {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  font-size: 0.85rem;
+}
+
+.order-detail-item.compact .order-detail-image {
+  width: 42px;
+  height: 50px;
+}
+
+.order-detail-copy {
+  min-width: 0;
+}
+
+@media (max-width: 860px) {
+  .checkout-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .checkout-summary-column {
+    position: static;
+  }
+}
+
+@media (max-width: 700px) {
+  .checkout-two-col,
+  .checkout-three-col,
+  .payment-method-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .password-requirements {
+    grid-template-columns: 1fr;
+  }
+
+  .order-detail-item,
+  .order-detail-item.compact {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .order-detail-item > span,
+  .order-detail-item.compact > span {
+    grid-column: 2;
+  }
 }
 
 .auth-switch-text {

@@ -1,23 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-const KEYS = {
-  users: 'threadco_users',
-  currentUser: 'threadco_current_user',
-  authToken: 'threadco_auth_token',
-  adminSession: 'threadco_admin_session',
-  cart: 'threadco_cart',
-  cartSync: 'threadco_cart_sync',
-  shippingMethod: 'threadco_shipping_method',
-  products: 'threadco_products',
-  orders: 'threadco_orders',
-  promoCode: 'threadco_promo_code',
-  contactDraft: 'threadco_contact_draft',
-  loginState: 'threadco_login_state',
-  resetState: 'threadco_reset_state',
-  wishlist: 'threadco_wishlist',
-  offers: 'threadco_offers'
-};
-
 const REGEX = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   name: /^[A-Za-z][A-Za-z\s.'-]{0,49}$/,
@@ -28,48 +10,6 @@ const REGEX = {
 };
 
 const StoreContext = createContext(null);
-
-const read = (storage, key, fallback = undefined) => {
-  try {
-    const value = storage.getItem(key);
-    return value ? JSON.parse(value) : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-const write = (storage, key, value) => {
-  try {
-    storage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const loadLocal = (key, fallback) => {
-  const localValue = read(localStorage, key);
-  if (localValue !== undefined) return localValue;
-  const sessionValue = read(sessionStorage, key);
-  if (sessionValue !== undefined) return sessionValue;
-  return fallback;
-};
-
-const saveLocal = (key, value) => {
-  if (!write(localStorage, key, value)) write(sessionStorage, key, value);
-};
-
-const loadSession = (key, fallback) => {
-  const sessionValue = read(sessionStorage, key);
-  if (sessionValue !== undefined) return sessionValue;
-  const localValue = read(localStorage, key);
-  if (localValue !== undefined) return localValue;
-  return fallback;
-};
-
-const saveSession = (key, value) => {
-  if (!write(sessionStorage, key, value)) write(localStorage, key, value);
-};
 
 const normalizeCart = (cart) => {
   if (!Array.isArray(cart)) return [];
@@ -120,20 +60,17 @@ export const getShippingState = (subtotal, method) => {
 
 export const StoreProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(() => loadLocal(KEYS.currentUser, null));
-  const [authToken, setAuthToken] = useState(() => loadLocal(KEYS.authToken, ''));
-  const [adminSession, setAdminSession] = useState(() => loadLocal(KEYS.adminSession, false) === true);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authToken, setAuthToken] = useState('');
+  const [adminSession, setAdminSession] = useState(false);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [cart, setCart] = useState(() => normalizeCart(loadLocal(KEYS.cart, [])));
-  const [shippingMethod, setShippingMethod] = useState(() => String(loadSession(KEYS.shippingMethod, 'standard')));
-  const [promoCode, setPromoCode] = useState(() => String(loadSession(KEYS.promoCode, '')));
-  const [contactDraft, setContactDraft] = useState(() => loadSession(KEYS.contactDraft, {}));
-  const [loginState, setLoginState] = useState(() => loadSession(KEYS.loginState, {}));
-  const [resetState, setResetState] = useState(() => loadSession(KEYS.resetState, {}));
+  const [cart, setCart] = useState([]);
+  const [shippingMethod, setShippingMethod] = useState('standard');
+  const [promoCode, setPromoCode] = useState('');
   
   // New States
-  const [wishlist, setWishlist] = useState(() => loadLocal(KEYS.wishlist, []));
+  const [wishlist, setWishlist] = useState([]);
   const [offers, setOffers] = useState([]);
 
   const API_URL = process.env.REACT_APP_API_URL || "https://thread-co-backend.onrender.com/api";
@@ -245,29 +182,8 @@ export const StoreProvider = ({ children }) => {
       };
       syncCartWishlist();
       
-      const updatedUser = { ...currentUser, cart, wishlist };
-      saveLocal(KEYS.currentUser, updatedUser);
     }
   }, [apiFetch, authToken, cart, wishlist, currentUser, currentUser?.email]);
-
-  // Persistent States Session/Local Sync
-  useEffect(() => saveLocal(KEYS.currentUser, currentUser), [currentUser]);
-  useEffect(() => saveLocal(KEYS.authToken, authToken), [authToken]);
-  useEffect(() => saveLocal(KEYS.adminSession, adminSession), [adminSession]);
-  useEffect(() => saveLocal(KEYS.cart, cart), [cart]);
-  useEffect(() => saveLocal(KEYS.wishlist, wishlist), [wishlist]);
-  useEffect(() => saveSession(KEYS.shippingMethod, shippingMethod), [shippingMethod]);
-  useEffect(() => saveSession(KEYS.promoCode, promoCode), [promoCode]);
-  useEffect(() => saveSession(KEYS.contactDraft, contactDraft), [contactDraft]);
-  useEffect(() => saveSession(KEYS.loginState, loginState), [loginState]);
-  useEffect(() => saveSession(KEYS.resetState, resetState), [resetState]);
-
-  useEffect(() => {
-    saveSession(KEYS.cartSync, {
-      updatedAt: Date.now(),
-      count: cart.reduce((sum, item) => sum + Number(item.quantity || 1), 0)
-    });
-  }, [cart]);
 
   const cartSubtotal = useMemo(
     () => cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0),
@@ -361,6 +277,15 @@ export const StoreProvider = ({ children }) => {
     if (!cart.length) return null;
     
     try {
+      const orderItems = cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        size: item.size,
+        color: item.color,
+        image: item.image
+      }));
       const orderData = {
         customer: currentUser ? `${currentUser.firstname} ${currentUser.lastname}` : 'Guest User',
         email: currentUser ? currentUser.email : 'guest@threadco.com',
@@ -368,16 +293,13 @@ export const StoreProvider = ({ children }) => {
         address: deliveryAddress || 'No Address Provided',
         paymentMethod: paymentMethod || 'Cash on Delivery',
         paymentId: paymentDetails.paymentId || null,
-        paymentStatus: paymentDetails.paymentStatus || (paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Paid'),
+        paymentStatus: paymentDetails.paymentStatus || (paymentMethod === 'Cash on Delivery' ? 'COD' : 'Paid'),
         razorpayPaymentId: paymentDetails.razorpayPaymentId || '',
-        items: cart.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          size: item.size,
-          color: item.color
-        }))
+        shippingMethod,
+        shippingAmount,
+        promoCode: promoState.code,
+        discount: promoState.discount,
+        items: orderItems
       };
 
       const res = await apiFetch('/orders', {
@@ -386,7 +308,11 @@ export const StoreProvider = ({ children }) => {
       });
       const savedOrder = await res.json();
       if (res.ok) {
-        setOrders((prev) => [savedOrder, ...prev]);
+        const savedItems = (savedOrder.items || []).map((savedItem) => {
+          const sourceItem = orderItems.find((item) => String(item.id) === String(savedItem.id));
+          return { ...savedItem, image: savedItem.image || sourceItem?.image || '' };
+        });
+        setOrders((prev) => [{ ...savedOrder, items: savedItems }, ...prev]);
         setCart([]);
         setPromoCode('');
         setShippingMethod('standard');
@@ -557,15 +483,14 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  const signup = async ({ name, email, password, phone }) => {
+  const signup = async ({ name, email, password, phone, acceptedPolicies }) => {
     try {
       const res = await apiFetch('/user/signup', {
         method: 'POST',
-        body: JSON.stringify({ name, email, phone, password })
+        body: JSON.stringify({ name, email, phone, password, acceptedPolicies })
       });
       const data = await res.json();
       if (res.ok) {
-        setLoginState({ lastEmail: email.trim().toLowerCase(), signedUpAt: Date.now() });
         return { ok: true, message: 'Signup successful. Redirecting to login...' };
       } else {
         return { ok: false, message: data.message || 'Signup failed.' };
@@ -588,7 +513,6 @@ export const StoreProvider = ({ children }) => {
         setCurrentUser(user);
         setCart(normalizeCart(user.cart || []));
         setWishlist(user.wishlist || []);
-        setLoginState({ lastEmail: user.email, loggedInAt: Date.now() });
         if (user.role === 'admin') setAdminSession(true);
         return { ok: true, isAdmin: user.role === 'admin', message: 'Login successful. Redirecting...' };
       } else {
@@ -689,6 +613,34 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
+  const submitContactMessage = async (messageData) => {
+    try {
+      const res = await apiFetch('/contact', {
+        method: 'POST',
+        body: JSON.stringify(messageData)
+      });
+      const data = await res.json();
+      if (res.ok) return { ok: true, message: data.message || 'Message sent successfully.' };
+      return { ok: false, message: data.message || 'Unable to save contact message.' };
+    } catch (err) {
+      return { ok: false, message: 'Error connecting to server.' };
+    }
+  };
+
+  const requestPasswordReset = async (email) => {
+    try {
+      const res = await apiFetch('/password-reset', {
+        method: 'POST',
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (res.ok) return { ok: true, message: data.message || 'Password reset request saved.' };
+      return { ok: false, message: data.message || 'Unable to save password reset request.' };
+    } catch (err) {
+      return { ok: false, message: 'Error connecting to server.' };
+    }
+  };
+
   const value = {
     users,
     currentUser,
@@ -700,9 +652,6 @@ export const StoreProvider = ({ children }) => {
     offers,
     shippingMethod,
     promoCode,
-    contactDraft,
-    loginState,
-    resetState,
     cartSubtotal,
     promoState,
     shippingState,
@@ -718,8 +667,6 @@ export const StoreProvider = ({ children }) => {
     updateOrderStatus,
     setShippingMethod,
     setPromoCode,
-    setContactDraft,
-    setResetState,
     signup,
     login,
     adminLogin,
@@ -736,7 +683,9 @@ export const StoreProvider = ({ children }) => {
     updateUserProfile,
     addOffer,
     deleteOffer,
-    toggleOfferStatus
+    toggleOfferStatus,
+    submitContactMessage,
+    requestPasswordReset
   };
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

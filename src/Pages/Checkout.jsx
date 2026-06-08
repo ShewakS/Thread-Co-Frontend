@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -7,7 +7,9 @@ import MenuItem from '@mui/material/MenuItem';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import AddIcon from '@mui/icons-material/Add';
 import { useStore, formatMoney } from '../Components/StoreContext';
+import { resolveImage } from '../Components/imageMap';
 
 const Checkout = () => {
   const {
@@ -24,33 +26,46 @@ const Checkout = () => {
     createPaymentOrder,
     verifyPayment,
     currentUser,
+    updateUserProfile,
     offers
   } = useStore();
 
   const navigate = useNavigate();
-
+  const savedAddresses = useMemo(() => currentUser?.addresses || [], [currentUser?.addresses]);
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState(savedAddresses.length ? '0' : 'new');
+  const [showNewAddressForm, setShowNewAddressForm] = useState(!savedAddresses.length);
   const [addressForm, setAddressForm] = useState({
-    fullName: '',
-    phone: '',
+    fullName: currentUser ? `${currentUser.firstname || ''} ${currentUser.lastname || ''}`.trim() : '',
+    phone: currentUser?.phone || '',
     streetAddress: '',
     city: '',
     state: '',
     zip: ''
   });
-
-  // Coupon input state
   const [couponInput, setCouponInput] = useState(promoCode || '');
   const [couponNotice, setCouponNotice] = useState(null);
-
-  // Payment state
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [isPaying, setIsPaying] = useState(false);
-
-  // Validation errors
   const [notice, setNotice] = useState(null);
 
-  const handleApplyCoupon = (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (!savedAddresses.length) {
+      setSelectedAddressIndex('new');
+      setShowNewAddressForm(true);
+    } else if (selectedAddressIndex === 'new' && !showNewAddressForm) {
+      setSelectedAddressIndex('0');
+    }
+  }, [savedAddresses.length, selectedAddressIndex, showNewAddressForm]);
+
+  const getCustomerName = () => (
+    addressForm.fullName.trim() ||
+    `${currentUser?.firstname || ''} ${currentUser?.lastname || ''}`.trim() ||
+    'Customer'
+  );
+  const getCustomerPhone = () => addressForm.phone.trim() || currentUser?.phone || '';
+
+  const handleApplyCoupon = (event) => {
+    event.preventDefault();
     setCouponNotice(null);
     const code = couponInput.trim().toUpperCase();
     if (!code) {
@@ -58,8 +73,7 @@ const Checkout = () => {
       return;
     }
 
-    // Validate promo code
-    const validOffer = offers.find(o => String(o.code).toUpperCase() === code && o.status === 'Active');
+    const validOffer = offers.find((offer) => String(offer.code).toUpperCase() === code && offer.status === 'Active');
     if (validOffer || code === 'SAVE10' || code === 'FREESHIP') {
       setPromoCode(code);
       setCouponNotice({ type: 'success', text: `Coupon "${code}" applied successfully!` });
@@ -71,7 +85,6 @@ const Checkout = () => {
 
   const loadRazorpayScript = () => new Promise((resolve) => {
     if (window.Razorpay) return resolve(true);
-
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.onload = () => resolve(true);
@@ -79,43 +92,36 @@ const Checkout = () => {
     document.body.appendChild(script);
   });
 
-  const validateAddress = () => {
+  const validateAddress = async () => {
     setNotice(null);
 
-    if (!addressForm.fullName.trim()) {
-      setNotice({ type: 'error', text: 'Full Name is required.' });
-      return null;
-    }
-    if (!addressForm.phone.trim() || addressForm.phone.length < 10) {
-      setNotice({ type: 'error', text: 'Please enter a valid 10-digit Phone Number.' });
-      return null;
-    }
-    if (!addressForm.streetAddress.trim()) {
-      setNotice({ type: 'error', text: 'Street Address is required.' });
-      return null;
-    }
-    if (!addressForm.city.trim()) {
-      setNotice({ type: 'error', text: 'City is required.' });
-      return null;
-    }
-    if (!addressForm.state.trim()) {
-      setNotice({ type: 'error', text: 'State is required.' });
-      return null;
-    }
-    if (!addressForm.zip.trim() || !/^\d{6}$/.test(addressForm.zip.trim())) {
-      setNotice({ type: 'error', text: 'Please enter a valid 6-digit Zip/Pin Code.' });
-      return null;
+    if (!showNewAddressForm && selectedAddressIndex !== 'new' && savedAddresses[Number(selectedAddressIndex)]) {
+      return savedAddresses[Number(selectedAddressIndex)];
     }
 
-    return `${addressForm.streetAddress}, ${addressForm.city}, ${addressForm.state} - ${addressForm.zip}`;
+    if (!getCustomerName()) return setNotice({ type: 'error', text: 'Full Name is required.' }) || null;
+    if (!getCustomerPhone() || getCustomerPhone().length < 10) {
+      return setNotice({ type: 'error', text: 'Please enter a valid 10-digit Phone Number.' }) || null;
+    }
+    if (!addressForm.streetAddress.trim()) return setNotice({ type: 'error', text: 'Street Address is required.' }) || null;
+    if (!addressForm.city.trim()) return setNotice({ type: 'error', text: 'City is required.' }) || null;
+    if (!addressForm.state.trim()) return setNotice({ type: 'error', text: 'State is required.' }) || null;
+    if (!/^\d{6}$/.test(addressForm.zip.trim())) {
+      return setNotice({ type: 'error', text: 'Please enter a valid 6-digit Zip/Pin Code.' }) || null;
+    }
+
+    const fullAddress = `${addressForm.streetAddress}, ${addressForm.city}, ${addressForm.state} - ${addressForm.zip}`;
+    if (!savedAddresses.includes(fullAddress)) {
+      await updateUserProfile({ addresses: [...savedAddresses, fullAddress] });
+    }
+    setShowNewAddressForm(false);
+    return fullAddress;
   };
 
   const placeCodOrder = async (fullAddress) => {
-    const newOrderId = await placeOrder(fullAddress, 'Cash on Delivery', {
-      paymentStatus: 'Pending'
-    });
+    const newOrderId = await placeOrder(fullAddress, 'Cash on Delivery', { paymentStatus: 'COD' });
     if (newOrderId) {
-      navigate('/order-success', { state: { orderId: newOrderId, total: orderTotal } });
+      navigate('/order-success', { state: { orderId: newOrderId, total: orderTotal, paymentStatus: 'COD' } });
     } else {
       setNotice({ type: 'error', text: 'Your bag is empty.' });
     }
@@ -131,9 +137,10 @@ const Checkout = () => {
     }
 
     const paymentOrder = await createPaymentOrder({
-      customer: addressForm.fullName,
+      customer: getCustomerName(),
       email: currentUser?.email,
-      phone: addressForm.phone
+      phone: getCustomerPhone(),
+      preferredPayment: paymentMethod === 'gpay' ? 'GPay' : 'Razorpay'
     });
 
     if (!paymentOrder.ok) {
@@ -143,37 +150,49 @@ const Checkout = () => {
     }
 
     const { key, paymentId, order } = paymentOrder.data;
+    const gpayDisplay = paymentMethod === 'gpay'
+      ? {
+          blocks: {
+            upi: {
+              name: 'Google Pay / UPI',
+              instruments: [{ method: 'upi' }]
+            }
+          },
+          sequence: ['block.upi'],
+          preferences: { show_default_blocks: false }
+        }
+      : undefined;
+
     const razorpay = new window.Razorpay({
       key,
       amount: order.amount,
       currency: order.currency,
       name: 'THREAD & CO',
-      description: 'Order payment',
+      description: paymentMethod === 'gpay' ? 'Google Pay / UPI payment' : 'Order payment',
       order_id: order.id,
+      method: {
+        upi: true,
+        card: paymentMethod !== 'gpay',
+        netbanking: paymentMethod !== 'gpay',
+        wallet: paymentMethod !== 'gpay'
+      },
+      config: gpayDisplay ? { display: gpayDisplay } : undefined,
       prefill: {
-        name: addressForm.fullName,
+        name: getCustomerName(),
         email: currentUser?.email || '',
-        contact: addressForm.phone
+        contact: getCustomerPhone()
       },
-      notes: {
-        address: fullAddress
-      },
-      theme: {
-        color: '#111111'
-      },
+      notes: { address: fullAddress },
+      theme: { color: '#2f3e34' },
       handler: async (response) => {
-        const verified = await verifyPayment({
-          paymentId,
-          ...response
-        });
-
+        const verified = await verifyPayment({ paymentId, ...response });
         if (!verified.ok) {
           setIsPaying(false);
           setNotice({ type: 'error', text: verified.message });
           return;
         }
 
-        const newOrderId = await placeOrder(fullAddress, 'Razorpay', {
+        const newOrderId = await placeOrder(fullAddress, paymentMethod === 'gpay' ? 'Google Pay (Razorpay UPI)' : 'Razorpay', {
           paymentId,
           paymentStatus: 'Paid',
           razorpayPaymentId: response.razorpay_payment_id
@@ -185,34 +204,26 @@ const Checkout = () => {
             state: {
               orderId: newOrderId,
               total: orderTotal,
-              paymentId: response.razorpay_payment_id
+              paymentId: response.razorpay_payment_id,
+              paymentStatus: 'Paid'
             }
           });
         } else {
           setNotice({ type: 'error', text: 'Payment succeeded, but order creation failed. Please contact support.' });
         }
       },
-      modal: {
-        ondismiss: () => {
-          setIsPaying(false);
-        }
-      }
+      modal: { ondismiss: () => setIsPaying(false) }
     });
 
     razorpay.open();
   };
 
-  const handlePlaceOrder = async (e) => {
-    e.preventDefault();
-    const fullAddress = validateAddress();
+  const handlePlaceOrder = async (event) => {
+    event.preventDefault();
+    const fullAddress = await validateAddress();
     if (!fullAddress) return;
-
-    if (paymentMethod === 'cod') {
-      await placeCodOrder(fullAddress);
-      return;
-    }
-
-    await startRazorpayPayment(fullAddress);
+    if (paymentMethod === 'cod') return placeCodOrder(fullAddress);
+    return startRazorpayPayment(fullAddress);
   };
 
   if (cart.length === 0) {
@@ -239,232 +250,137 @@ const Checkout = () => {
 
         {notice && <Alert severity={notice.type} style={{ marginBottom: '1.5rem' }}>{notice.text}</Alert>}
 
-        <div className="checkout-grid" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '2.5rem', alignItems: 'start' }}>
-          {/* Checkout Steps Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {/* Delivery Address Block */}
+        <div className="checkout-grid checkout-layout">
+          <div className="checkout-main-column">
             <article className="content-block">
-              <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h3 className="checkout-section-title">
                 <LocalShippingIcon color="secondary" /> 1. Shipping Address
               </h3>
-              <form className="form-grid" noValidate>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <TextField
-                    label="Full Name"
-                    value={addressForm.fullName}
-                    onChange={e => setAddressForm(prev => ({ ...prev, fullName: e.target.value }))}
-                    required
-                  />
-                  <TextField
-                    label="Phone Number"
-                    value={addressForm.phone}
-                    onChange={e => setAddressForm(prev => ({ ...prev, phone: e.target.value }))}
-                    required
-                    placeholder="10-digit number"
-                  />
+
+              {savedAddresses.length > 0 && !showNewAddressForm ? (
+                <div className="saved-address-list">
+                  {savedAddresses.map((address, index) => (
+                    <label className={`saved-address-option ${selectedAddressIndex === String(index) ? 'active' : ''}`} key={`${address}-${index}`}>
+                      <input
+                        type="radio"
+                        name="saved-address"
+                        checked={selectedAddressIndex === String(index)}
+                        onChange={() => setSelectedAddressIndex(String(index))}
+                      />
+                      <span>{address}</span>
+                    </label>
+                  ))}
                 </div>
-                <TextField
-                  label="Street Address"
-                  value={addressForm.streetAddress}
-                  onChange={e => setAddressForm(prev => ({ ...prev, streetAddress: e.target.value }))}
-                  required
-                  placeholder="Flat/House no., Colony/Street"
-                />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                  <TextField
-                    label="City"
-                    value={addressForm.city}
-                    onChange={e => setAddressForm(prev => ({ ...prev, city: e.target.value }))}
-                    required
-                  />
-                  <TextField
-                    label="State"
-                    value={addressForm.state}
-                    onChange={e => setAddressForm(prev => ({ ...prev, state: e.target.value }))}
-                    required
-                  />
-                  <TextField
-                    label="Zip / Pin Code"
-                    value={addressForm.zip}
-                    onChange={e => setAddressForm(prev => ({ ...prev, zip: e.target.value }))}
-                    required
-                    placeholder="6 digits"
-                  />
-                </div>
-              </form>
+              ) : null}
+
+              <Button
+                color="secondary"
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  setSelectedAddressIndex('new');
+                  setShowNewAddressForm(true);
+                }}
+                style={{ borderRadius: '10px', marginBottom: showNewAddressForm ? '1rem' : 0 }}
+              >
+                Add New Address
+              </Button>
+
+              {showNewAddressForm ? (
+                <form className="form-grid checkout-address-form" noValidate>
+                  <div className="checkout-two-col">
+                    <TextField label="Full Name" value={addressForm.fullName} onChange={(e) => setAddressForm((prev) => ({ ...prev, fullName: e.target.value }))} required />
+                    <TextField label="Phone Number" value={addressForm.phone} onChange={(e) => setAddressForm((prev) => ({ ...prev, phone: e.target.value }))} required placeholder="10-digit number" />
+                  </div>
+                  <TextField label="Street Address" value={addressForm.streetAddress} onChange={(e) => setAddressForm((prev) => ({ ...prev, streetAddress: e.target.value }))} required placeholder="Flat/House no., Colony/Street" />
+                  <div className="checkout-three-col">
+                    <TextField label="City" value={addressForm.city} onChange={(e) => setAddressForm((prev) => ({ ...prev, city: e.target.value }))} required />
+                    <TextField label="State" value={addressForm.state} onChange={(e) => setAddressForm((prev) => ({ ...prev, state: e.target.value }))} required />
+                    <TextField label="Zip / Pin Code" value={addressForm.zip} onChange={(e) => setAddressForm((prev) => ({ ...prev, zip: e.target.value }))} required placeholder="6 digits" />
+                  </div>
+                </form>
+              ) : null}
             </article>
 
-            {/* Shipping Method Block */}
             <article className="content-block">
-              <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
-                2. Shipping Speed
-              </h3>
-              <TextField
-                select
-                label="Shipping Method"
-                value={shippingMethod}
-                onChange={e => setShippingMethod(e.target.value)}
-                fullWidth
-              >
-                <MenuItem value="standard">Standard Shipping (₹99 or FREE above ₹1000)</MenuItem>
-                <MenuItem value="express">Express Delivery (₹149 - Delivered in 2 Days)</MenuItem>
-                <MenuItem value="priority">Priority Same-Day Delivery (₹249)</MenuItem>
+              <h3 className="checkout-section-title">2. Shipping Speed</h3>
+              <TextField select label="Shipping Method" value={shippingMethod} onChange={(e) => setShippingMethod(e.target.value)} fullWidth>
+                <MenuItem value="standard">Standard Shipping (free above order threshold)</MenuItem>
+                <MenuItem value="express">Express Delivery</MenuItem>
+                <MenuItem value="priority">Priority Same-Day Delivery</MenuItem>
               </TextField>
             </article>
 
-            {/* Payment Method Block */}
             <article className="content-block">
-              <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h3 className="checkout-section-title">
                 <CreditCardIcon color="secondary" /> 3. Payment Method
               </h3>
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div className="payment-method-grid">
                 {[
                   { id: 'razorpay', label: 'Razorpay', icon: <AccountBalanceWalletIcon /> },
+                  { id: 'gpay', label: 'GPay', icon: <AccountBalanceWalletIcon /> },
                   { id: 'cod', label: 'Cash on Delivery', icon: <LocalShippingIcon /> }
-                ].map(opt => (
+                ].map((option) => (
                   <button
-                    key={opt.id}
+                    key={option.id}
                     type="button"
-                    onClick={() => setPaymentMethod(opt.id)}
-                    style={{
-                      flex: 1,
-                      padding: '1rem 0.5rem',
-                      borderRadius: '12px',
-                      border: paymentMethod === opt.id ? '2px solid var(--accent)' : '1px solid var(--border)',
-                      background: paymentMethod === opt.id ? 'var(--accent-soft)' : '#fff',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      fontWeight: 600,
-                      fontSize: '0.86rem',
-                      color: 'var(--text)'
-                    }}
+                    onClick={() => setPaymentMethod(option.id)}
+                    className={`payment-method-card ${paymentMethod === option.id ? 'active' : ''}`}
                   >
-                    {opt.icon}
-                    {opt.label}
+                    {option.icon}
+                    {option.label}
                   </button>
                 ))}
               </div>
 
-              {/* Dynamic Payment Details */}
-              {paymentMethod === 'cod' && (
-                <div style={{ padding: '1rem', background: 'var(--bg-muted)', borderRadius: '10px', border: '1px solid var(--border)' }}>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                    <strong>Pay with Cash/UPI at Delivery:</strong> You can pay directly to our delivery executive when your parcel arrives. No advance payment required.
-                  </p>
-                </div>
-              )}
-
-              {paymentMethod === 'razorpay' && (
-                <div style={{ padding: '1rem', background: 'var(--bg-muted)', borderRadius: '10px', border: '1px solid var(--border)' }}>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                    Pay securely with Razorpay using UPI, cards, netbanking, or wallets. You will be redirected to the Razorpay checkout window.
-                  </p>
-                </div>
-              )}
+              <div className="payment-note">
+                {paymentMethod === 'cod'
+                  ? <p><strong>Cash on Delivery:</strong> Payment status will be marked as COD until delivery collection.</p>
+                  : paymentMethod === 'gpay'
+                    ? <p><strong>Google Pay:</strong> Razorpay will open a UPI-focused checkout for Google Pay or any installed UPI app.</p>
+                    : <p>Pay securely with Razorpay using UPI, cards, netbanking, or wallets.</p>}
+              </div>
             </article>
           </div>
 
-          {/* Sidebar Summary Column */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'sticky', top: '120px' }}>
+          <div className="checkout-summary-column">
             <article className="content-block">
               <h3 style={{ margin: '0 0 1.5rem' }}>Order Summary</h3>
 
-              {/* Items List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '200px', overflowY: 'auto', marginBottom: '1.5rem', paddingRight: '0.5rem' }}>
+              <div className="checkout-items-list">
                 {cart.map((item, index) => (
-                  <div key={`${item.id}-${index}`} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <div style={{ width: '45px', height: '55px', borderRadius: '6px', overflow: 'hidden', background: '#eee', flexShrink: 0 }}>
-                      <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div className="checkout-item-row" key={`${item.id}-${index}`}>
+                    <div className="checkout-item-image">
+                      <img src={resolveImage(item.image)} alt={item.name} />
                     </div>
-                    <div style={{ flexGrow: 1, minWidth: 0 }}>
-                      <h4 style={{ margin: 0, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</h4>
-                      <p style={{ margin: 0, fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                        Qty: {item.quantity} | Size: {item.size}
-                      </p>
+                    <div className="checkout-item-info">
+                      <h4>{item.name}</h4>
+                      <p>Qty: {item.quantity} | Size: {item.size}</p>
                     </div>
-                    <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>
-                      {formatMoney(item.price * item.quantity)}
-                    </span>
+                    <strong>{formatMoney(item.price * item.quantity)}</strong>
                   </div>
                 ))}
               </div>
 
               <hr style={{ border: 0, borderBottom: '1px solid var(--border)', margin: '1rem 0' }} />
 
-              {/* Coupon Box */}
-              <form onSubmit={handleApplyCoupon} style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                <input
-                  type="text"
-                  placeholder="PROMO CODE"
-                  value={couponInput}
-                  onChange={e => setCouponInput(e.target.value)}
-                  style={{
-                    border: '1px solid var(--border)',
-                    borderRadius: '8px',
-                    padding: '0.5rem',
-                    textTransform: 'uppercase',
-                    fontSize: '0.8rem',
-                    flexGrow: 1
-                  }}
-                />
-                <button
-                  type="submit"
-                  style={{
-                    background: 'var(--accent)',
-                    color: '#fff',
-                    border: 0,
-                    borderRadius: '8px',
-                    padding: '0.5rem 1rem',
-                    fontWeight: 700,
-                    fontSize: '0.8rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Apply
-                </button>
+              <form onSubmit={handleApplyCoupon} className="checkout-coupon-form">
+                <input type="text" placeholder="PROMO CODE" value={couponInput} onChange={(e) => setCouponInput(e.target.value)} />
+                <button type="submit">Apply</button>
               </form>
 
-              {couponNotice && (
-                <Alert severity={couponNotice.type} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', marginBottom: '1.5rem' }}>
-                  {couponNotice.text}
-                </Alert>
-              )}
+              {couponNotice && <Alert severity={couponNotice.type} style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', marginBottom: '1.5rem' }}>{couponNotice.text}</Alert>}
 
-              {/* Calculation List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Subtotal</span>
-                  <span style={{ color: 'var(--black)' }}>{formatMoney(cartSubtotal)}</span>
-                </div>
-                {promoState.discount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--success)' }}>
-                    <span>Discount ({promoState.code})</span>
-                    <span>-{formatMoney(promoState.discount)}</span>
-                  </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Shipping Fee ({shippingMethod.toUpperCase()})</span>
-                  <span style={{ color: 'var(--black)' }}>{shippingAmount === 0 ? 'FREE' : formatMoney(shippingAmount)}</span>
-                </div>
-                <hr style={{ border: 0, borderBottom: '1px solid var(--border)', margin: '0.5rem 0' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.15rem', fontWeight: 800, color: 'var(--black)' }}>
-                  <span>Total Amount</span>
-                  <span>{formatMoney(orderTotal)}</span>
-                </div>
+              <div className="checkout-total-list">
+                <div><span>Subtotal</span><strong>{formatMoney(cartSubtotal)}</strong></div>
+                {promoState.discount > 0 && <div className="success-row"><span>Discount ({promoState.code})</span><strong>-{formatMoney(promoState.discount)}</strong></div>}
+                <div><span>Shipping Fee ({shippingMethod.toUpperCase()})</span><strong>{shippingAmount === 0 ? 'FREE' : formatMoney(shippingAmount)}</strong></div>
+                <hr />
+                <div className="checkout-grand-total"><span>Total Amount</span><strong>{formatMoney(orderTotal)}</strong></div>
               </div>
 
-              <Button
-                color="secondary"
-                variant="contained"
-                onClick={handlePlaceOrder}
-                disabled={isPaying}
-                className="btn btn-block"
-                style={{ marginTop: '1.5rem', padding: '0.8rem 1rem', fontSize: '0.94rem', borderRadius: '12px' }}
-              >
-                {isPaying ? 'Opening Payment...' : paymentMethod === 'cod' ? 'Confirm COD Order' : 'Go to Payment'}
+              <Button color="secondary" variant="contained" onClick={handlePlaceOrder} disabled={isPaying} className="btn btn-block checkout-submit">
+                {isPaying ? 'Opening Payment...' : paymentMethod === 'cod' ? 'Confirm COD Order' : paymentMethod === 'gpay' ? 'Pay with GPay' : 'Go to Payment'}
               </Button>
             </article>
           </div>

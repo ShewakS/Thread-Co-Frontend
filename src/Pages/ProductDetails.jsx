@@ -26,17 +26,6 @@ const ProductDetails = () => {
     return wishlist.some(item => String(item.id) === String(product.id));
   }, [wishlist, product]);
 
-  // Gallery images (mocked since we have 1 image per product, we generate variations)
-  const galleryImages = useMemo(() => {
-    if (!product) return [];
-    return [
-      product.image,
-      product.image, // we reuse the same image as variation
-      'images/men%20shirts.jpg', // additional fallback variations
-      'images/women%20dress.avif'
-    ];
-  }, [product]);
-
   const [activeImage, setActiveImage] = useState(product?.image || '');
   const [selectedSize, setSelectedSize] = useState('M');
   const [selectedColor, setSelectedColor] = useState('Classic Beige');
@@ -141,17 +130,6 @@ const ProductDetails = () => {
                 alt={product.name} 
               />
             </div>
-            <div className="thumbnail-strip product-thumbnail-strip">
-              {galleryImages.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImage(img)}
-                  className={`product-thumb ${activeImage === img ? 'active' : ''}`}
-                >
-                  <img src={resolveImage(img)} alt="thumb" />
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Info Section */}
@@ -191,6 +169,7 @@ const ProductDetails = () => {
               <div className="product-choice-row">
                 {['S', 'M', 'L', 'XL'].map(size => (
                   <button
+                    type="button"
                     key={size}
                     onClick={() => setSelectedSize(size)}
                     className={`size-choice ${selectedSize === size ? 'active' : ''}`}
@@ -207,6 +186,7 @@ const ProductDetails = () => {
               <div className="product-choice-row">
                 {['Classic Beige', 'Sage Green', 'Indigo Blue'].map(color => (
                   <button
+                    type="button"
                     key={color}
                     onClick={() => setSelectedColor(color)}
                     className={`color-choice ${selectedColor === color ? 'active' : ''}`}
@@ -223,12 +203,14 @@ const ProductDetails = () => {
               <div className="product-action-row">
                 <div className="quantity-control">
                   <button 
+                    type="button"
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
                   >
                     -
                   </button>
                   <span>{quantity}</span>
                   <button 
+                    type="button"
                     onClick={() => setQuantity(q => q + 1)}
                   >
                     +
@@ -246,6 +228,7 @@ const ProductDetails = () => {
                 </Button>
 
                 <button 
+                  type="button"
                   onClick={handleWishlistToggle}
                   className={`wishlist-toggle ${isWishlisted ? 'active' : ''}`}
                   title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
@@ -260,6 +243,7 @@ const ProductDetails = () => {
               <div className="product-tabs">
                 {['details', 'specs', 'care'].map(tab => (
                   <button
+                    type="button"
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className={activeTab === tab ? 'active' : ''}

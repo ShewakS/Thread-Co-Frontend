@@ -7,7 +7,7 @@ const OrderSuccess = () => {
   const location = useLocation();
   
   // Extract state
-  const { orderId, total } = location.state || { orderId: `ORD-${Date.now().toString().slice(-6)}`, total: 0 };
+  const { orderId, total, paymentStatus } = location.state || { orderId: `ORD-${Date.now().toString().slice(-6)}`, total: 0, paymentStatus: '' };
 
   return (
     <main className="section section-alt">
@@ -25,9 +25,15 @@ const OrderSuccess = () => {
               <strong style={{ color: 'var(--black)' }}>{orderId}</strong>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.94rem' }}>
-              <span className="muted" style={{ fontWeight: 600 }}>Amount Paid:</span>
-              <strong style={{ color: 'var(--black)' }}>{formatMoney(total)}</strong>
+              <span className="muted" style={{ fontWeight: 600 }}>{paymentStatus === 'COD' ? 'Payment Status:' : 'Amount Paid:'}</span>
+              <strong style={{ color: 'var(--black)' }}>{paymentStatus === 'COD' ? 'COD' : formatMoney(total)}</strong>
             </div>
+            {paymentStatus === 'COD' ? (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.94rem', marginTop: '0.8rem' }}>
+                <span className="muted" style={{ fontWeight: 600 }}>Order Total:</span>
+                <strong style={{ color: 'var(--black)' }}>{formatMoney(total)}</strong>
+              </div>
+            ) : null}
           </div>
 
           <p className="muted" style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '2.5rem' }}>

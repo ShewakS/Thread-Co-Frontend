@@ -7,17 +7,17 @@ import { useStore, validators } from '../Components/StoreContext';
 import loginImage from '../Assets/Images/login page.jpg';
 
 const ForgotPasswordPage = () => {
-  const { resetState, setResetState } = useStore();
-  const [email, setEmail] = useState(resetState.email || '');
+  const { requestPasswordReset } = useStore();
+  const [email, setEmail] = useState('');
   const [notice, setNotice] = useState(null);
 
-  const onSubmit = (event) => {
+  const onSubmit = async (event) => {
     event.preventDefault();
     setNotice(null);
     if (!validators.isValidEmail(email)) return setNotice({ type: 'error', text: 'Enter a valid email address.' });
-    setResetState({ email, requestedAt: Date.now() });
-    setNotice({ type: 'success', text: 'Password reset link sent.' });
-    setEmail('');
+    const result = await requestPasswordReset(email);
+    setNotice({ type: result.ok ? 'success' : 'error', text: result.ok ? 'Password reset request saved.' : result.message });
+    if (result.ok) setEmail('');
   };
 
   return (

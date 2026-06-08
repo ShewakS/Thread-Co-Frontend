@@ -5,11 +5,29 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import LinearProgress from "@mui/material/LinearProgress";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 import { useStore, validators } from "../Components/StoreContext";
 import loginImage from "../Assets/Images/login page.jpg";
+
+const getPasswordStrength = (password) => {
+  const checks = {
+    length: password.length >= 6,
+    lower: /[a-z]/.test(password),
+    upper: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+  const score = Object.values(checks).filter(Boolean).length;
+  if (!password) return { label: "", value: 0, className: "", checks };
+  if (score <= 2) return { label: "Weak", value: 34, className: "weak", checks };
+  if (score <= 4) return { label: "Medium", value: 67, className: "medium", checks };
+  return { label: "Strong", value: 100, className: "strong", checks };
+};
 
 const SignupPage = () => {
   const { signup } = useStore();
@@ -21,10 +39,12 @@ const SignupPage = () => {
     phone: "",
     password: "",
     confirmPassword: "",
+    acceptedPolicies: false,
   });
   const [notice, setNotice] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const passwordStrength = getPasswordStrength(form.password);
 
   const onChange = (field) => (event) => {
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
@@ -50,12 +70,15 @@ const SignupPage = () => {
     }
     if (form.password !== form.confirmPassword)
       return setNotice({ type: "error", text: "Passwords do not match." });
+    if (!form.acceptedPolicies)
+      return setNotice({ type: "error", text: "Please accept the Terms & Conditions and Privacy Policy." });
 
     const result = await signup({
       name: `${form.firstname.trim()} ${form.lastname.trim()}`,
       email: form.email,
       phone: form.phone,
       password: form.password,
+      acceptedPolicies: form.acceptedPolicies,
     });
 
     setNotice({ type: result.ok ? "success" : "error", text: result.message });
@@ -67,6 +90,7 @@ const SignupPage = () => {
         phone: "",
         password: "",
         confirmPassword: "",
+        acceptedPolicies: false,
       });
       window.setTimeout(() => navigate("/login"), 1000);
     }
@@ -123,6 +147,26 @@ const SignupPage = () => {
                   },
                 }}
               />
+              {form.password ? (
+                <div className="password-strength">
+                  <div className="password-strength-head">
+                    <span>Password strength</span>
+                    <strong className={passwordStrength.className}>{passwordStrength.label}</strong>
+                  </div>
+                  <LinearProgress
+                    variant="determinate"
+                    value={passwordStrength.value}
+                    className={`password-strength-bar ${passwordStrength.className}`}
+                  />
+                  <ul className="password-requirements">
+                    <li className={passwordStrength.checks.length ? "met" : ""}>Minimum 6 characters</li>
+                    <li className={passwordStrength.checks.lower ? "met" : ""}>Lowercase letter</li>
+                    <li className={passwordStrength.checks.upper ? "met" : ""}>Uppercase letter</li>
+                    <li className={passwordStrength.checks.number ? "met" : ""}>Number</li>
+                    <li className={passwordStrength.checks.special ? "met" : ""}>Special character</li>
+                  </ul>
+                </div>
+              ) : null}
             </div>
 
             <div className="auth-field">
@@ -149,6 +193,23 @@ const SignupPage = () => {
             </div>
 
             {notice ? <Alert severity={notice.type}>{notice.text}</Alert> : null}
+
+            <FormControlLabel
+              className="auth-policy-check"
+              control={
+                <Checkbox
+                  checked={form.acceptedPolicies}
+                  onChange={(event) => setForm((prev) => ({ ...prev, acceptedPolicies: event.target.checked }))}
+                  color="primary"
+                  size="small"
+                />
+              }
+              label={
+                <span>
+                  I agree to the <Link to="/terms" className="auth-switch-link">Terms & Conditions</Link> and <Link to="/privacy" className="auth-switch-link">Privacy Policy</Link>.
+                </span>
+              }
+            />
 
             <Button type="submit" fullWidth variant="contained" className="auth-submit">
               Sign Up Now

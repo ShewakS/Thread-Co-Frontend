@@ -11,7 +11,6 @@ const SiteFooter = () => {
     <footer className="site-footer">
       <div className="container footer-shell">
         <p className="footer-eyebrow">THREAD & CO</p>
-        <h2 className="footer-heading">Built with the same clean theme from header to footer.</h2>
         <div className="footer-widget">
           <div className="footer-column">
             <h3>About Company</h3>

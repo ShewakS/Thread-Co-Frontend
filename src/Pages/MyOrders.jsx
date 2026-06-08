@@ -6,6 +6,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useStore, formatMoney } from '../Components/StoreContext';
+import { resolveImage } from '../Components/imageMap';
 
 const STATUS_STEPS = ['Placed', 'Confirmed', 'Packed', 'Shipped', 'Delivered'];
 
@@ -128,8 +129,11 @@ const MyOrders = () => {
                       <h4 style={{ margin: '0 0 1rem' }}>Garments Ordered</h4>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '2rem' }}>
                         {(order.items || []).map((item, idx) => (
-                          <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', borderBottom: '1px solid #f6f6ef', paddingBottom: '0.5rem' }}>
-                            <div>
+                          <div key={idx} className="order-detail-item">
+                            <div className="order-detail-image">
+                              {item.image ? <img src={resolveImage(item.image)} alt={item.name} /> : <span>{String(item.name || 'P').slice(0, 1)}</span>}
+                            </div>
+                            <div className="order-detail-copy">
                               <strong>{item.name}</strong> 
                               <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginLeft: '0.5rem' }}>
                                 (Size: {item.size || 'M'} | Color: {item.color || 'Standard'})
@@ -154,6 +158,9 @@ const MyOrders = () => {
                           <h4 style={{ margin: '0 0 0.5rem' }}>Payment Summary</h4>
                           <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--text-muted)' }}>
                             Method: {order.paymentMethod || 'Cash on Delivery'}
+                          </p>
+                          <p style={{ margin: '0.35rem 0 0', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                            Status: {order.paymentStatus === 'COD' || String(order.paymentMethod).toLowerCase().includes('cash') ? 'COD' : (order.paymentStatus || 'Paid')}
                           </p>
                         </div>
                       </div>

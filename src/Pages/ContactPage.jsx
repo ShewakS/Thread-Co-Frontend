@@ -5,22 +5,21 @@ import TextField from '@mui/material/TextField';
 import { useStore, validators } from '../Components/StoreContext';
 
 const ContactPage = () => {
-  const { contactDraft, setContactDraft } = useStore();
+  const { submitContactMessage } = useStore();
   const [form, setForm] = useState({
-    name: contactDraft.name || '',
-    email: contactDraft.email || '',
-    subject: contactDraft.subject || '',
-    message: contactDraft.message || ''
+    name: '',
+    email: '',
+    subject: '',
+    message: ''
   });
   const [notice, setNotice] = useState(null);
 
   const onChange = (field) => (event) => {
     const next = { ...form, [field]: event.target.value };
     setForm(next);
-    setContactDraft(next);
   };
 
-  const onSubmit = (event) => {
+  const onSubmit = async (event) => {
     event.preventDefault();
     setNotice(null);
 
@@ -29,9 +28,9 @@ const ContactPage = () => {
     if (!validators.isValidSubject(form.subject)) return setNotice({ type: 'error', text: 'Enter a valid subject.' });
     if (form.message.trim().length < 10) return setNotice({ type: 'error', text: 'Message should be at least 10 characters long.' });
 
-    setForm({ name: '', email: '', subject: '', message: '' });
-    setContactDraft({});
-    setNotice({ type: 'success', text: 'Message sent successfully. Our team will contact you soon.' });
+    const result = await submitContactMessage(form);
+    setNotice({ type: result.ok ? 'success' : 'error', text: result.ok ? 'Message saved successfully. Our team will contact you soon.' : result.message });
+    if (result.ok) setForm({ name: '', email: '', subject: '', message: '' });
   };
 
   return (

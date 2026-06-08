@@ -11,12 +11,12 @@ import { useStore, validators } from '../Components/StoreContext';
 import loginImage from '../Assets/Images/login page.jpg';
 
 const LoginPage = () => {
-  const { login, loginState } = useStore();
+  const { login } = useStore();
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = location.state?.from || '/';
 
-  const [form, setForm] = useState({ email: loginState.lastEmail || '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [notice, setNotice] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
