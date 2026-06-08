@@ -6,9 +6,9 @@ THREAD & CO provides a complete online shopping experience with secure authentic
 
 ## Live Demo
 
-**Frontend:** https://your-frontend-url.com
+**Frontend:** https://thread-co-livid.vercel.app
 
-**Backend API:** https://your-backend-url.com
+**Backend API:** https://thread-co-backend.onrender.com
 
 ---
 
@@ -148,8 +148,8 @@ PORT=5000
 MONGO_URL=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=7d
-BACKEND_URL=http://localhost:5000
-CORS_ORIGIN=http://localhost:3000
+BACKEND_URL=http://localhost:5000 or deployed link
+CORS_ORIGIN=http://localhost:3000 or deployed link
 RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ```
@@ -159,7 +159,7 @@ RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 Create `frontend/.env`
 
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=http://localhost:5000/api or https://thread-co-livid.vercel.app
 ```
 
 For production deployment, replace local URLs with deployed URLs.
