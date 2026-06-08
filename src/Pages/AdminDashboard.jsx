@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -7,7 +6,6 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { useStore, formatMoney } from '../Components/StoreContext';
 
 const AdminDashboard = () => {
@@ -26,26 +24,6 @@ const AdminDashboard = () => {
       revenue: revenueSum
     };
   }, [products, orders, users]);
-
-  // Find products with stock less than 6 (warning)
-  const lowStockAlerts = useMemo(() => {
-    const threshold = 6;
-    const alerts = [];
-    products.forEach(prod => {
-      const stock = prod.stock || { S: 10, M: 15, L: 8, XL: 5 };
-      Object.keys(stock).forEach(size => {
-        if (Number(stock[size]) < threshold) {
-          alerts.push({
-            id: prod.id,
-            name: prod.name,
-            size,
-            qty: stock[size]
-          });
-        }
-      });
-    });
-    return alerts;
-  }, [products]);
 
   // Recent 5 orders
   const recentOrders = useMemo(() => {
@@ -91,7 +69,7 @@ const AdminDashboard = () => {
       </section>
 
       {/* Main Stats Rows */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '2rem', alignItems: 'start' }}>
+     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', alignItems: 'start' }}>
         
         {/* Recent Orders Card */}
         <article className="content-block" style={{ padding: '1.5rem' }}>
@@ -131,45 +109,6 @@ const AdminDashboard = () => {
               </TableBody>
             </Table>
           </TableContainer>
-        </article>
-
-        {/* Low Stock Alerts Card */}
-        <article className="content-block" style={{ padding: '1.5rem' }}>
-          <h3 style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.75rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <WarningAmberIcon style={{ color: 'var(--danger)' }} /> Inventory Stock Alerts
-          </h3>
-          
-          {lowStockAlerts.length === 0 ? (
-            <Alert severity="success">All sizes are adequately stocked.</Alert>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', maxHeight: '320px', overflowY: 'auto' }}>
-              {lowStockAlerts.map((alert, idx) => (
-                <div 
-                  key={idx} 
-                  style={{
-                    padding: '0.8rem 1rem',
-                    borderRadius: '10px',
-                    background: '#fbe9e8',
-                    border: '1px solid #f4c7c5',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontSize: '0.88rem'
-                  }}
-                >
-                  <div>
-                    <strong>{alert.name}</strong>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.82rem', marginLeft: '0.5rem' }}>
-                      (Size: {alert.size})
-                    </span>
-                  </div>
-                  <strong style={{ color: 'var(--danger)' }}>
-                    {alert.qty} left
-                  </strong>
-                </div>
-              ))}
-            </div>
-          )}
         </article>
 
       </div>
