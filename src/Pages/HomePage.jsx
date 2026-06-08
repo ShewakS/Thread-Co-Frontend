@@ -5,13 +5,9 @@ import AutorenewOutlinedIcon from '@mui/icons-material/AutorenewOutlined';
 import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
 import HeadsetMicOutlinedIcon from '@mui/icons-material/HeadsetMicOutlined';
 import HeroCarousel from '../Components/HeroCarousel';
-import ProductCard from '../Components/ProductCard';
-import { useStore } from '../Components/StoreContext';
 import { resolveImage } from '../Components/imageMap';
 
 const HomePage = () => {
-  const { products, addToCart } = useStore();
-
   return (
     <>
       <section className="section">
@@ -107,16 +103,6 @@ const HomePage = () => {
             </article>
           </div>
 
-          <h2 className="section-title" style={{ textAlign: 'center', marginTop: '4rem' }}>Featured Products</h2>
-          <p className="section-subtitle" style={{ textAlign: 'center' }}>
-            Our handpicked arrivals for the season.
-          </p>
-
-          <div className="grid-4 product-grid js-home-products">
-            {products.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
-            ))}
-          </div>
         </div>
       </section>
     </>

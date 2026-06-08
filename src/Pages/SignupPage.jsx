@@ -73,7 +73,7 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="auth-page">
+    <div className="auth-page login-auth-page login-page">
       <div className="auth-form-panel">
         <div className="auth-form-inner auth-form-inner-wide">
           <div className="auth-logo">THREAD & CO</div>

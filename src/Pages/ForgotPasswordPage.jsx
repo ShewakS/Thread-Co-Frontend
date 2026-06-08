@@ -21,7 +21,7 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="auth-page login-auth-page">
+    <div className="auth-page login-auth-page login-page">
       <div className="auth-form-panel">
         <div className="auth-form-inner">
           <div className="auth-logo">THREAD & CO</div>

@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.63472bd2.css",
-    "main.js": "/static/js/main.7b1938a2.js",
+    "main.css": "/static/css/main.f03ed9d2.css",
+    "main.js": "/static/js/main.9b06e929.js",
     "static/js/453.20359781.chunk.js": "/static/js/453.20359781.chunk.js",
     "static/media/login page.jpg": "/static/media/login page.601a678419ce3b69c5fb.jpg",
     "static/media/Flow Midi Dress.webp": "/static/media/Flow Midi Dress.3611d95102cb582a5cc9.webp",
@@ -72,12 +72,12 @@
     "static/media/roboto-greek-ext-500-normal.woff": "/static/media/roboto-greek-ext-500-normal.7a641dae0b2f504396d9.woff",
     "static/media/roboto-greek-ext-700-normal.woff": "/static/media/roboto-greek-ext-700-normal.5b51dabd754d1b37053e.woff",
     "index.html": "/index.html",
-    "main.63472bd2.css.map": "/static/css/main.63472bd2.css.map",
-    "main.7b1938a2.js.map": "/static/js/main.7b1938a2.js.map",
+    "main.f03ed9d2.css.map": "/static/css/main.f03ed9d2.css.map",
+    "main.9b06e929.js.map": "/static/js/main.9b06e929.js.map",
     "453.20359781.chunk.js.map": "/static/js/453.20359781.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.63472bd2.css",
-    "static/js/main.7b1938a2.js"
+    "static/css/main.f03ed9d2.css",
+    "static/js/main.9b06e929.js"
   ]
 }
