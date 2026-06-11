@@ -35,7 +35,7 @@ const AdminLayout = () => {
             <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: '#eff4ea', opacity: 0.7, marginBottom: '1rem', fontWeight: 700 }}>
               <ArrowBackIcon fontSize="inherit" /> Back to Storefront
             </Link>
-            <h2 style={{ margin: 0, fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: '1.75rem', letterSpacing: '0.02em', color: '#fff' }}>
+            <h2 style={{ margin: 0, fontFamily: '"Cormorant Garamond", Georgia, serif', fontSize: '1.75rem', letterSpacing: '0.02em', color: '#fff', cursor: "pointer"}} onClick={()=>navigate("/")}>
               THREAD ADMIN
             </h2>
             <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>Store Operations Console</span>

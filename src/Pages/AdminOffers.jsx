@@ -152,26 +152,29 @@ const AdminOffers = () => {
               size="small"
             />
             <div className="admin-date-grid">
-              <TextField
-                label="Start Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={form.startDate}
-                onChange={e => setForm(prev => ({ ...prev, startDate: e.target.value }))}
-                required
-                size="small"
-                fullWidth
-              />
-              <TextField
-                label="End Date"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={form.endDate}
-                onChange={e => setForm(prev => ({ ...prev, endDate: e.target.value }))}
-                required
-                size="small"
-                fullWidth
-              />
+              <div>
+  <label>Start Date</label>
+  <TextField
+    type="date"
+    value={form.startDate}
+    onChange={e => setForm(prev => ({ ...prev, startDate: e.target.value }))}
+    required
+    size="small"
+    fullWidth
+  />
+</div>
+
+<div>
+  <label>End Date</label>
+  <TextField
+    type="date"
+    value={form.endDate}
+    onChange={e => setForm(prev => ({ ...prev, endDate: e.target.value }))}
+    required
+    size="small"
+    fullWidth
+  />
+</div>
             </div>
             <Button color="secondary" variant="contained" className="btn btn-block" type="submit" disabled={isPublishing}>
               {isPublishing ? 'Publishing Promotion...' : 'Publish Promotion'}
