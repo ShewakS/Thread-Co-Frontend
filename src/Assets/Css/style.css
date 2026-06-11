@@ -640,11 +640,11 @@ textarea:focus-visible {
 }
 
 .style-category-grid .category-card .card-media {
-  object-fit: cover;
+  overflow: hidden;
 }
 
 .style-category-grid .category-card .card-media img {
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
 }
 

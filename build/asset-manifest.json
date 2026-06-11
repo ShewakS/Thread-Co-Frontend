@@ -1,9 +1,10 @@
 {
   "files": {
-    "main.css": "/static/css/main.70d6c800.css",
-    "main.js": "/static/js/main.98ab8205.js",
+    "main.css": "/static/css/main.78be2726.css",
+    "main.js": "/static/js/main.44f2884d.js",
     "static/js/453.20359781.chunk.js": "/static/js/453.20359781.chunk.js",
     "static/media/login page.jpg": "/static/media/login page.601a678419ce3b69c5fb.jpg",
+    "static/media/childdress.jpg": "/static/media/childdress.4e6d796c6367640b1385.jpg",
     "static/media/Flow Midi Dress.webp": "/static/media/Flow Midi Dress.3611d95102cb582a5cc9.webp",
     "static/media/Daily Denim Jacket.jpg": "/static/media/Daily Denim Jacket.61b271c4cacb4bf0f139.jpg",
     "static/media/Hat.webp": "/static/media/Hat.33705a6b029146349b29.webp",
@@ -12,6 +13,7 @@
     "static/media/Relaxed Beige Blazer.jpg": "/static/media/Relaxed Beige Blazer.555b931cd357ea55d43e.jpg",
     "static/media/Banner.jpg": "/static/media/Banner.8b5b04f102a98b39903b.jpg",
     "static/media/adv1.jpg": "/static/media/adv1.f9689b8a0ea25c6a5ea5.jpg",
+    "static/media/Beadednecklace.jpg": "/static/media/Beadednecklace.ee562c682007121d3c5d.jpg",
     "static/media/shirt for men.webp": "/static/media/shirt for men.4faa3a7ddb041c45bee3.webp",
     "static/media/roboto-latin-700-normal.woff2": "/static/media/roboto-latin-700-normal.d89b03c583b9adb99987.woff2",
     "static/media/roboto-latin-500-normal.woff2": "/static/media/roboto-latin-500-normal.1c7e8aa0ba84e4f92e5f.woff2",
@@ -72,12 +74,12 @@
     "static/media/roboto-greek-ext-500-normal.woff": "/static/media/roboto-greek-ext-500-normal.7a641dae0b2f504396d9.woff",
     "static/media/roboto-greek-ext-700-normal.woff": "/static/media/roboto-greek-ext-700-normal.5b51dabd754d1b37053e.woff",
     "index.html": "/index.html",
-    "main.70d6c800.css.map": "/static/css/main.70d6c800.css.map",
-    "main.98ab8205.js.map": "/static/js/main.98ab8205.js.map",
+    "main.78be2726.css.map": "/static/css/main.78be2726.css.map",
+    "main.44f2884d.js.map": "/static/js/main.44f2884d.js.map",
     "453.20359781.chunk.js.map": "/static/js/453.20359781.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.70d6c800.css",
-    "static/js/main.98ab8205.js"
+    "static/css/main.78be2726.css",
+    "static/js/main.44f2884d.js"
   ]
 }

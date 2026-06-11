@@ -64,7 +64,7 @@ const HomePage = () => {
           <div className="style-category-grid">
             <article className="card category-card">
               <div className="card-media">
-                <img src={resolveImage('images/men shirts.jpg')} alt="Men category" />
+                <img src={resolveImage('images/shirt for men.webp')} alt="Men category" />
               </div>
               <div className="card-body">
                 <p className="category-label">Men</p>
@@ -77,7 +77,7 @@ const HomePage = () => {
             </article>
             <article className="card category-card">
               <div className="card-media">
-                <img src={resolveImage('images/download.webp')} alt="Kids category" />
+                <img src={resolveImage('images/childdress.jpg')} alt="Kids category" />
               </div>
               <div className="card-body">
                 <p className="category-label">Kids</p>
@@ -103,7 +103,7 @@ const HomePage = () => {
             </article>
             <article className="card category-card">
               <div className="card-media">
-                <img src={resolveImage('images/accessories.jpg')} alt="Accessories category" />
+                <img src={resolveImage('images/Beadednecklace.jpg')} alt="Accessories category" />
               </div>
               <div className="card-body">
                 <p className="category-label">Accessories</p>

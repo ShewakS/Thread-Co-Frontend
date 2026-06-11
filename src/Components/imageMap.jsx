@@ -13,6 +13,8 @@ import relaxedBeigeBlazer from '../Assets/Images/Relaxed Beige Blazer.jpg';
 import shirtForMen from '../Assets/Images/shirt for men.webp';
 import softKnitSet from '../Assets/Images/Soft Knit Co-ord Set.webp';
 import womenDress from '../Assets/Images/women dress.avif';
+import childdress from '../Assets/Images/childdress.jpg';
+import beadednecklace from '../Assets/Images/Beadednecklace.jpg';
 
 export const imageMap = {
   'images/accessories.jpg': accessories,
@@ -39,7 +41,9 @@ export const imageMap = {
   'images/Soft%20Knit%20Co-ord%20Set.webp': softKnitSet,
   'images/Soft Knit Co-ord Set.webp': softKnitSet,
   'images/women%20dress.avif': womenDress,
-  'images/women dress.avif': womenDress
+  'images/women dress.avif': womenDress,
+  'images/childdress.jpg': childdress,
+  'images/Beadednecklace.jpg': beadednecklace
 };
 
 export const resolveImage = (path) => {
